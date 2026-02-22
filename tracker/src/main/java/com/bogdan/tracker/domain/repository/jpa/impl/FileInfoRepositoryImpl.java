@@ -1,7 +1,7 @@
 package com.bogdan.tracker.domain.repository.jpa.impl;
 
 import com.bogdan.tracker.domain.model.FileInfo;
-import com.bogdan.tracker.domain.repository.BasicRepository;
+import com.bogdan.tracker.domain.repository.BaseRepository;
 import com.bogdan.tracker.domain.repository.jpa.FileInfoJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -11,7 +11,7 @@ import java.util.Optional;
 
 @Repository
 @RequiredArgsConstructor
-public class FileInfoRepositoryImpl implements BasicRepository<FileInfo, String> {
+public class FileInfoRepositoryImpl implements BaseRepository<FileInfo, String> {
 
     private final FileInfoJpaRepository fileInfoJpaRepository;
 

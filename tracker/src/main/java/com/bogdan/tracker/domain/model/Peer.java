@@ -5,38 +5,54 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
-@Table(name = "peer")
-@AllArgsConstructor
+@Table(name = "peer",
+        uniqueConstraints = @UniqueConstraint(columnNames = {"ip", "port"}),
+        indexes = @Index(name = "idx_last_seen", columnList = "last_seen"))
+@Getter
+@Setter
 @NoArgsConstructor
-@Data
+@AllArgsConstructor
 @Builder
+@ToString(exclude = "files")
 public class Peer {
+
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(unique = true, nullable = false, name = "ip_addres")
+    @Column(nullable = false)
     private String ip;
 
-    @Column(unique = true, nullable = false, name = "port")
+    @Column(nullable = false)
     private int port;
 
-    @Column(nullable = false, name = "last_seen")
+    @Column(name = "last_seen", nullable = false)
     private LocalDateTime lastSeen;
 
-/* TODO
     @ManyToMany
-    private List<FileInfo> files;
- */
-
+    @JoinTable(
+            name = "peer_files",
+            joinColumns = @JoinColumn(name = "peer_id"),
+            inverseJoinColumns = @JoinColumn(name = "file_hash")
+    )
+    private List<FileInfo> files = new ArrayList<>();
 }

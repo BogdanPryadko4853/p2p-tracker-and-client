@@ -31,8 +31,8 @@ public class FileInfoRepositoryImpl implements BaseRepository<FileInfo, String> 
     }
 
     @Override
-    public void deleteById(FileInfo fileInfo) {
-        fileInfoJpaRepository.delete(fileInfo);
+    public void delete(FileInfo fileInfo) {
+        fileInfoJpaRepository.deleteById(fileInfo.getHash());
     }
 
     @Override

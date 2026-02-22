@@ -7,7 +7,7 @@ public interface BaseRepository<T,ID>{
     List<T> findAll();
     Optional<T> findById(ID id);
     void save(T t);
-    void deleteById(T t);
+    void delete(T t);
     boolean existsById(ID id);
     long count();
 }

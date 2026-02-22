@@ -32,7 +32,7 @@ public class PeerRepositoryImpl implements BaseRepository<Peer, UUID> {
     }
 
     @Override
-    public void deleteById(Peer peer) {
+    public void delete(Peer peer) {
         peerJpaRepository.deleteById(peer.getId());
     }
 
@@ -43,6 +43,6 @@ public class PeerRepositoryImpl implements BaseRepository<Peer, UUID> {
 
     @Override
     public long count() {
-        return 0;
+        return peerJpaRepository.count();
     }
 }

@@ -1,5 +1,6 @@
 package com.bogdan.tracker.domain.repository;
 
+import com.bogdan.tracker.domain.common.FileInfoUtils;
 import com.bogdan.tracker.domain.model.FileInfo;
 import com.bogdan.tracker.infrastructure.repository.jpa.FileInfoJpaRepository;
 import com.bogdan.tracker.infrastructure.repository.jpa.impl.FileInfoRepositoryImpl;
@@ -34,7 +35,7 @@ class FileInfoRepositoryTest {
 
     @Test
     void findAll_shouldReturnListOfFiles() {
-        List<FileInfo> expected = createTwoFiles();
+        List<FileInfo> expected = FileInfoUtils.createTwoFiles();
         when(fileInfoJpaRepository.findAll()).thenReturn(expected);
 
         List<FileInfo> actual = fileInfoRepository.findAll();
@@ -45,7 +46,7 @@ class FileInfoRepositoryTest {
 
     @Test
     void findById_shouldReturnFile_whenFileExists() {
-        FileInfo expected = createOneFile("hash123");
+        FileInfo expected = FileInfoUtils.createOneFile("hash123");
         when(fileInfoJpaRepository.findById("hash123")).thenReturn(Optional.of(expected));
 
         Optional<FileInfo> actual = fileInfoRepository.findById("hash123");
@@ -67,7 +68,7 @@ class FileInfoRepositoryTest {
 
     @Test
     void save_shouldCallJpaRepositorySave() {
-        FileInfo file = createOneFile("hash456");
+        FileInfo file = FileInfoUtils.createOneFile("hash456");
 
         fileInfoRepository.save(file);
 
@@ -76,7 +77,7 @@ class FileInfoRepositoryTest {
 
     @Test
     void save_shouldThrowException_whenDuplicateKey() {
-        FileInfo file = createOneFile("hash456");
+        FileInfo file = FileInfoUtils.createOneFile("hash456");
         when(fileInfoJpaRepository.save(file)).thenThrow(DataIntegrityViolationException.class);
 
         assertThrows(DataIntegrityViolationException.class, () -> fileInfoRepository.save(file));
@@ -85,7 +86,7 @@ class FileInfoRepositoryTest {
 
     @Test
     void delete_shouldCallJpaRepositoryDeleteById_whenFileExists() {
-        FileInfo file = createOneFile("hash789");
+        FileInfo file = FileInfoUtils.createOneFile("hash789");
 
         fileInfoRepository.delete(file);
 
@@ -95,7 +96,7 @@ class FileInfoRepositoryTest {
 
     @Test
     void delete_shouldThrowException_whenFileNotFound() {
-        FileInfo file = createOneFile("hash789");
+        FileInfo file = FileInfoUtils.createOneFile("hash789");
         doThrow(DataIntegrityViolationException.class).when(fileInfoJpaRepository).deleteById(file.getHash());
 
         assertThrows(DataIntegrityViolationException.class, () -> fileInfoRepository.delete(file));
@@ -130,20 +131,5 @@ class FileInfoRepositoryTest {
 
         assertEquals(3L, count);
         verify(fileInfoJpaRepository).count();
-    }
-
-    private List<FileInfo> createTwoFiles() {
-        return List.of(
-                createOneFile("hash1"),
-                createOneFile("hash2")
-        );
-    }
-
-    private FileInfo createOneFile(String hash) {
-        return FileInfo.builder()
-                .hash(hash)
-                .name("file_" + hash + ".txt")
-                .size(1024L)
-                .build();
     }
 }

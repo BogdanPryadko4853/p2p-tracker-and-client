@@ -1,5 +1,6 @@
 package com.bogdan.tracker.domain.repository;
 
+import com.bogdan.tracker.domain.common.PeerUtils;
 import com.bogdan.tracker.domain.model.Peer;
 import com.bogdan.tracker.infrastructure.repository.jpa.PeerJpaRepository;
 import com.bogdan.tracker.infrastructure.repository.jpa.impl.PeerRepositoryImpl;
@@ -11,7 +12,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -37,7 +37,7 @@ class PeerRepositoryImplTest {
 
     @Test
     void findAll_shouldReturnListOfPeers() {
-        List<Peer> expected = createTwoPeers();
+        List<Peer> expected = PeerUtils.createTwoPeers();
         when(peerJpaRepository.findAll()).thenReturn(expected);
 
         List<Peer> actual = peerRepository.findAll();
@@ -48,7 +48,7 @@ class PeerRepositoryImplTest {
 
     @Test
     void findById_shouldReturnPeer_whenPeerExists() {
-        Peer expected = createOnePeer();
+        Peer expected = PeerUtils.createOnePeer();
         when(peerJpaRepository.findById(any(UUID.class))).thenReturn(Optional.of(expected));
 
         Optional<Peer> actual = peerRepository.findById(UUID.randomUUID());
@@ -70,7 +70,7 @@ class PeerRepositoryImplTest {
 
     @Test
     void save_shouldCallJpaRepositorySave() {
-        Peer peer = createOnePeer();
+        Peer peer = PeerUtils.createOnePeer();
 
         peerRepository.save(peer);
 
@@ -79,7 +79,7 @@ class PeerRepositoryImplTest {
 
     @Test
     void save_shouldThrowException_whenDuplicateKey() {
-        Peer peer = createOnePeer();
+        Peer peer = PeerUtils.createOnePeer();
         when(peerJpaRepository.save(peer)).thenThrow(DataIntegrityViolationException.class);
 
         assertThrows(DataIntegrityViolationException.class, () -> peerRepository.save(peer));
@@ -88,7 +88,7 @@ class PeerRepositoryImplTest {
 
     @Test
     void delete_shouldCallJpaRepositoryDeleteById_whenPeerExists() {
-        Peer peer = createOnePeer();
+        Peer peer = PeerUtils.createOnePeer();
 
         peerRepository.delete(peer);
 
@@ -98,7 +98,7 @@ class PeerRepositoryImplTest {
 
     @Test
     void delete_shouldThrowException_whenPeerNotFound() {
-        Peer peer = createOnePeer();
+        Peer peer = PeerUtils.createOnePeer();
         doThrow(DataIntegrityViolationException.class).when(peerJpaRepository).deleteById(peer.getId());
 
         assertThrows(DataIntegrityViolationException.class, () -> peerRepository.delete(peer));
@@ -137,7 +137,7 @@ class PeerRepositoryImplTest {
 
     @Test
     void findByIpAndPort_shouldReturnPeer_whenExists() {
-        Peer expected = createOnePeer();
+        Peer expected = PeerUtils.createOnePeer();
         String ip = expected.getIp();
         int port = expected.getPort();
 
@@ -166,7 +166,7 @@ class PeerRepositoryImplTest {
     @Test
     void findByLastSeenAfter_shouldReturnListOfActivePeers() {
         LocalDateTime since = LocalDateTime.now().minusMinutes(5);
-        List<Peer> expected = createTwoPeers();
+        List<Peer> expected = PeerUtils.createTwoPeers();
 
         when(peerJpaRepository.findByLastSeenAfter(since)).thenReturn(expected);
 
@@ -191,7 +191,7 @@ class PeerRepositoryImplTest {
     @Test
     void findPeersByFileHash_shouldReturnListOfPeers() {
         String fileHash = "abc123";
-        List<Peer> expected = createTwoPeers();
+        List<Peer> expected = PeerUtils.createTwoPeers();
 
         when(peerJpaRepository.findPeersByFileHash(fileHash)).thenReturn(expected);
 
@@ -238,24 +238,4 @@ class PeerRepositoryImplTest {
         verify(peerJpaRepository).deleteByLastSeenBefore(threshold);
     }
 
-    private List<Peer> createTwoPeers() {
-        List<Peer> peers = new ArrayList<>();
-        peers.add(createOnePeer());
-        peers.add(Peer.builder()
-                .id(UUID.randomUUID())
-                .port(5678)
-                .ip("127.0.0.2")
-                .lastSeen(LocalDateTime.now())
-                .build());
-        return peers;
-    }
-
-    private Peer createOnePeer() {
-        return Peer.builder()
-                .id(UUID.randomUUID())
-                .port(1234)
-                .ip("127.0.0.1")
-                .lastSeen(LocalDateTime.now())
-                .build();
-    }
 }

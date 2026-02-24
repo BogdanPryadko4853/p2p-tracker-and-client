@@ -44,4 +44,24 @@ public class FileInfoRepositoryImpl implements FileInfoRepository {
     public long count() {
         return fileInfoJpaRepository.count();
     }
+
+    @Override
+    public List<FileInfo> findByNameContainingIgnoreCase(String name) {
+        return fileInfoJpaRepository.findByNameContainingIgnoreCase(name);
+    }
+
+    @Override
+    public List<FileInfo> findByPeerId(String peerId) {
+        return fileInfoJpaRepository.findByPeerId(peerId);
+    }
+
+    @Override
+    public Optional<FileInfo> findByHashAndPeerId(String hash, String peerId) {
+        return fileInfoJpaRepository.findByHashAndPeerId(hash, peerId);
+    }
+
+    @Override
+    public void deleteByHash(String hash) {
+        fileInfoJpaRepository.deleteById(hash);
+    }
 }

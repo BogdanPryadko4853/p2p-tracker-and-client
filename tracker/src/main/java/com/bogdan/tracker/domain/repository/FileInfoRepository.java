@@ -17,5 +17,13 @@ public interface FileInfoRepository {
     boolean existsById(String hash);
 
     long count();
+
+    List<FileInfo> findByNameContainingIgnoreCase(String name);
+
+    List<FileInfo> findByPeerId(String peerId);
+
+    Optional<FileInfo> findByHashAndPeerId(String hash, String peerId);
+
+    void deleteByHash(String hash);
 }
 

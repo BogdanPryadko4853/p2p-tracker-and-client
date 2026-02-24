@@ -132,4 +132,95 @@ class FileInfoRepositoryTest {
         assertEquals(3L, count);
         verify(fileInfoJpaRepository).count();
     }
+
+    @Test
+    void findByNameContainingIgnoreCase_shouldReturnMatchingFiles() {
+        String searchQuery = "photo";
+        List<FileInfo> expected = FileInfoUtils.createTwoFiles();
+        when(fileInfoJpaRepository.findByNameContainingIgnoreCase(searchQuery)).thenReturn(expected);
+
+        List<FileInfo> actual = fileInfoRepository.findByNameContainingIgnoreCase(searchQuery);
+
+        assertEquals(expected, actual);
+        verify(fileInfoJpaRepository).findByNameContainingIgnoreCase(searchQuery);
+    }
+
+    @Test
+    void findByNameContainingIgnoreCase_shouldReturnEmptyList_whenNoMatches() {
+        String searchQuery = "nonexistent";
+        when(fileInfoJpaRepository.findByNameContainingIgnoreCase(searchQuery)).thenReturn(List.of());
+
+        List<FileInfo> actual = fileInfoRepository.findByNameContainingIgnoreCase(searchQuery);
+
+        assertTrue(actual.isEmpty());
+        verify(fileInfoJpaRepository).findByNameContainingIgnoreCase(searchQuery);
+    }
+
+    @Test
+    void findByPeerId_shouldReturnFilesForPeer() {
+        String peerId = "peer123";
+        List<FileInfo> expected = FileInfoUtils.createTwoFiles();
+        when(fileInfoJpaRepository.findByPeerId(peerId)).thenReturn(expected);
+
+        List<FileInfo> actual = fileInfoRepository.findByPeerId(peerId);
+
+        assertEquals(expected, actual);
+        verify(fileInfoJpaRepository).findByPeerId(peerId);
+    }
+
+    @Test
+    void findByPeerId_shouldReturnEmptyList_whenPeerHasNoFiles() {
+        String peerId = "peer456";
+        when(fileInfoJpaRepository.findByPeerId(peerId)).thenReturn(List.of());
+
+        List<FileInfo> actual = fileInfoRepository.findByPeerId(peerId);
+
+        assertTrue(actual.isEmpty());
+        verify(fileInfoJpaRepository).findByPeerId(peerId);
+    }
+
+    @Test
+    void findByHashAndPeerId_shouldReturnFile_whenPeerHasFile() {
+        String hash = "hash123";
+        String peerId = "peer123";
+        FileInfo expected = FileInfoUtils.createOneFile(hash);
+        when(fileInfoJpaRepository.findByHashAndPeerId(hash, peerId)).thenReturn(Optional.of(expected));
+
+        Optional<FileInfo> actual = fileInfoRepository.findByHashAndPeerId(hash, peerId);
+
+        assertTrue(actual.isPresent());
+        assertEquals(expected, actual.get());
+        verify(fileInfoJpaRepository).findByHashAndPeerId(hash, peerId);
+    }
+
+    @Test
+    void findByHashAndPeerId_shouldReturnEmptyOptional_whenPeerDoesNotHaveFile() {
+        String hash = "hash123";
+        String peerId = "peer123";
+        when(fileInfoJpaRepository.findByHashAndPeerId(hash, peerId)).thenReturn(Optional.empty());
+
+        Optional<FileInfo> actual = fileInfoRepository.findByHashAndPeerId(hash, peerId);
+
+        assertTrue(actual.isEmpty());
+        verify(fileInfoJpaRepository).findByHashAndPeerId(hash, peerId);
+    }
+
+    @Test
+    void deleteByHash_shouldCallJpaRepositoryDeleteById() {
+        String hash = "hash789";
+
+        fileInfoRepository.deleteByHash(hash);
+
+        verify(fileInfoJpaRepository).deleteById(hash);
+        verifyNoMoreInteractions(fileInfoJpaRepository);
+    }
+
+    @Test
+    void deleteByHash_shouldThrowException_whenFileNotFound() {
+        String hash = "nonexistent";
+        doThrow(DataIntegrityViolationException.class).when(fileInfoJpaRepository).deleteById(hash);
+
+        assertThrows(DataIntegrityViolationException.class, () -> fileInfoRepository.deleteByHash(hash));
+        verify(fileInfoJpaRepository).deleteById(hash);
+    }
 }

@@ -1,4 +1,4 @@
-package com.bogdan.tracker.domain.repository.jpa;
+package com.bogdan.tracker.infrastructure.repository.jpa;
 
 import com.bogdan.tracker.domain.model.FileInfo;
 import org.springframework.data.jpa.repository.JpaRepository;

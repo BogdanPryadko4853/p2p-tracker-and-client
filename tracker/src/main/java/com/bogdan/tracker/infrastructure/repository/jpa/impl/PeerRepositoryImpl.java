@@ -1,7 +1,7 @@
 package com.bogdan.tracker.domain.repository.jpa.impl;
 
 import com.bogdan.tracker.domain.model.Peer;
-import com.bogdan.tracker.domain.repository.BaseRepository;
+import com.bogdan.tracker.domain.repository.PeerRepository;
 import com.bogdan.tracker.domain.repository.jpa.PeerJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -12,7 +12,7 @@ import java.util.UUID;
 
 @Repository
 @RequiredArgsConstructor
-public class PeerRepositoryImpl implements BaseRepository<Peer, UUID> {
+public class PeerRepositoryImpl implements PeerRepository{
 
     private final PeerJpaRepository peerJpaRepository;
 

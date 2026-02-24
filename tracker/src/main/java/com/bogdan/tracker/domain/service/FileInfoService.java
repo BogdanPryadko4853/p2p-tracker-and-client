@@ -7,7 +7,7 @@ import java.util.Optional;
 
 public interface FileInfoService {
 
-    FileInfo saveFile(FileInfo fileInfo);
+    void saveFile(FileInfo fileInfo);
 
     void deleteFile(String hash);
 

@@ -1,8 +1,8 @@
 package com.bogdan.tracker.domain.service;
 
 import com.bogdan.tracker.domain.common.PeerUtils;
-import com.bogdan.tracker.domain.exception.PeerAlreadyExistsException;
-import com.bogdan.tracker.domain.exception.PeerNotFoundException;
+import com.bogdan.tracker.domain.exception.Peer.PeerAlreadyExistsException;
+import com.bogdan.tracker.domain.exception.Peer.PeerNotFoundException;
 import com.bogdan.tracker.domain.model.Peer;
 import com.bogdan.tracker.domain.repository.PeerRepository;
 import com.bogdan.tracker.domain.service.impl.PeerServiceImpl;
@@ -165,8 +165,6 @@ class PeerServiceImplTest {
         when(peerRepository.findById(peerToUpdate.getId())).thenReturn(Optional.of(peerToUpdate));
 
         Peer updatedPeer = peerService.updateLastSeenPeer(peerToUpdate.getId());
-
-        assertNotEquals(originalLastSeen, updatedPeer.getLastSeen());
         assertTrue(updatedPeer.getLastSeen().isAfter(originalLastSeen));
         verify(peerRepository).findById(peerToUpdate.getId());
         verifyNoMoreInteractions(peerRepository);

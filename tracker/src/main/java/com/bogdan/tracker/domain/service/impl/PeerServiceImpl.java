@@ -1,7 +1,7 @@
 package com.bogdan.tracker.domain.service.impl;
 
-import com.bogdan.tracker.domain.exception.PeerAlreadyExistsException;
-import com.bogdan.tracker.domain.exception.PeerNotFoundException;
+import com.bogdan.tracker.domain.exception.Peer.PeerAlreadyExistsException;
+import com.bogdan.tracker.domain.exception.Peer.PeerNotFoundException;
 import com.bogdan.tracker.domain.model.Peer;
 import com.bogdan.tracker.domain.repository.PeerRepository;
 import com.bogdan.tracker.domain.service.PeerService;

@@ -1,8 +1,8 @@
 package com.bogdan.tracker.domain.repository;
 
 import com.bogdan.tracker.domain.model.FileInfo;
-import com.bogdan.tracker.domain.repository.jpa.FileInfoJpaRepository;
-import com.bogdan.tracker.domain.repository.jpa.impl.FileInfoRepositoryImpl;
+import com.bogdan.tracker.infrastructure.repository.jpa.FileInfoJpaRepository;
+import com.bogdan.tracker.infrastructure.repository.jpa.impl.FileInfoRepositoryImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

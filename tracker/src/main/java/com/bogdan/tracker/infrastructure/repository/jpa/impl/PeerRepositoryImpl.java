@@ -1,18 +1,19 @@
-package com.bogdan.tracker.domain.repository.jpa.impl;
+package com.bogdan.tracker.infrastructure.repository.jpa.impl;
 
 import com.bogdan.tracker.domain.model.Peer;
 import com.bogdan.tracker.domain.repository.PeerRepository;
-import com.bogdan.tracker.domain.repository.jpa.PeerJpaRepository;
+import com.bogdan.tracker.infrastructure.repository.jpa.PeerJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 @Repository
 @RequiredArgsConstructor
-public class PeerRepositoryImpl implements PeerRepository{
+public class PeerRepositoryImpl implements PeerRepository {
 
     private final PeerJpaRepository peerJpaRepository;
 
@@ -44,5 +45,25 @@ public class PeerRepositoryImpl implements PeerRepository{
     @Override
     public long count() {
         return peerJpaRepository.count();
+    }
+
+    @Override
+    public Optional<Peer> findByIpAndPort(String ip, int port) {
+        return peerJpaRepository.findByIpAndPort(ip, port);
+    }
+
+    @Override
+    public List<Peer> findByLastSeenAfter(LocalDateTime since) {
+        return peerJpaRepository.findByLastSeenAfter(since);
+    }
+
+    @Override
+    public List<Peer> findPeersByFileHash(String hash) {
+        return peerJpaRepository.findPeersByFileHash(hash);
+    }
+
+    @Override
+    public int deleteByLastSeenBefore(LocalDateTime threshold) {
+        return peerJpaRepository.deleteByLastSeenBefore(threshold);
     }
 }

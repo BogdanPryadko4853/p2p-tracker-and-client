@@ -1,8 +1,8 @@
 package com.bogdan.tracker.domain.repository;
 
 import com.bogdan.tracker.domain.model.Peer;
-import com.bogdan.tracker.domain.repository.jpa.PeerJpaRepository;
-import com.bogdan.tracker.domain.repository.jpa.impl.PeerRepositoryImpl;
+import com.bogdan.tracker.infrastructure.repository.jpa.PeerJpaRepository;
+import com.bogdan.tracker.infrastructure.repository.jpa.impl.PeerRepositoryImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -133,6 +133,109 @@ class PeerRepositoryImplTest {
 
         assertEquals(5L, count);
         verify(peerJpaRepository).count();
+    }
+
+    @Test
+    void findByIpAndPort_shouldReturnPeer_whenExists() {
+        Peer expected = createOnePeer();
+        String ip = expected.getIp();
+        int port = expected.getPort();
+
+        when(peerJpaRepository.findByIpAndPort(ip, port)).thenReturn(Optional.of(expected));
+
+        Optional<Peer> actual = peerRepository.findByIpAndPort(ip, port);
+
+        assertTrue(actual.isPresent());
+        assertEquals(expected, actual.get());
+        verify(peerJpaRepository).findByIpAndPort(ip, port);
+    }
+
+    @Test
+    void findByIpAndPort_shouldReturnEmptyOptional_whenNotFound() {
+        String ip = "192.168.1.100";
+        int port = 9999;
+
+        when(peerJpaRepository.findByIpAndPort(ip, port)).thenReturn(Optional.empty());
+
+        Optional<Peer> actual = peerRepository.findByIpAndPort(ip, port);
+
+        assertTrue(actual.isEmpty());
+        verify(peerJpaRepository).findByIpAndPort(ip, port);
+    }
+
+    @Test
+    void findByLastSeenAfter_shouldReturnListOfActivePeers() {
+        LocalDateTime since = LocalDateTime.now().minusMinutes(5);
+        List<Peer> expected = createTwoPeers();
+
+        when(peerJpaRepository.findByLastSeenAfter(since)).thenReturn(expected);
+
+        List<Peer> actual = peerRepository.findByLastSeenAfter(since);
+
+        assertEquals(expected, actual);
+        verify(peerJpaRepository).findByLastSeenAfter(since);
+    }
+
+    @Test
+    void findByLastSeenAfter_shouldReturnEmptyList_whenNoActivePeers() {
+        LocalDateTime since = LocalDateTime.now();
+
+        when(peerJpaRepository.findByLastSeenAfter(since)).thenReturn(List.of());
+
+        List<Peer> actual = peerRepository.findByLastSeenAfter(since);
+
+        assertTrue(actual.isEmpty());
+        verify(peerJpaRepository).findByLastSeenAfter(since);
+    }
+
+    @Test
+    void findPeersByFileHash_shouldReturnListOfPeers() {
+        String fileHash = "abc123";
+        List<Peer> expected = createTwoPeers();
+
+        when(peerJpaRepository.findPeersByFileHash(fileHash)).thenReturn(expected);
+
+        List<Peer> actual = peerRepository.findPeersByFileHash(fileHash);
+
+        assertEquals(expected, actual);
+        verify(peerJpaRepository).findPeersByFileHash(fileHash);
+    }
+
+    @Test
+    void findPeersByFileHash_shouldReturnEmptyList_whenNoPeersHaveFile() {
+        String fileHash = "nonexistent";
+
+        when(peerJpaRepository.findPeersByFileHash(fileHash)).thenReturn(List.of());
+
+        List<Peer> actual = peerRepository.findPeersByFileHash(fileHash);
+
+        assertTrue(actual.isEmpty());
+        verify(peerJpaRepository).findPeersByFileHash(fileHash);
+    }
+
+    @Test
+    void deleteByLastSeenBefore_shouldReturnNumberOfDeletedPeers() {
+        LocalDateTime threshold = LocalDateTime.now().minusMinutes(10);
+        int expectedDeleted = 3;
+
+        when(peerJpaRepository.deleteByLastSeenBefore(threshold)).thenReturn(expectedDeleted);
+
+        int actualDeleted = peerRepository.deleteByLastSeenBefore(threshold);
+
+        assertEquals(expectedDeleted, actualDeleted);
+        verify(peerJpaRepository).deleteByLastSeenBefore(threshold);
+    }
+
+    @Test
+    void deleteByLastSeenBefore_shouldReturnZero_whenNoPeersToDelete() {
+        LocalDateTime threshold = LocalDateTime.now().minusMinutes(10);
+
+        when(peerJpaRepository.deleteByLastSeenBefore(threshold)).thenReturn(0);
+
+        int actualDeleted = peerRepository.deleteByLastSeenBefore(threshold);
+
+        assertEquals(0, actualDeleted);
+        verify(peerJpaRepository).deleteByLastSeenBefore(threshold);
     }
 
     private List<Peer> createTwoPeers() {

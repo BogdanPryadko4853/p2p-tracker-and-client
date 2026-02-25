@@ -1,6 +1,6 @@
-package com.bogdan.tracker.domain.repository;
+package com.bogdan.tracker.infrastructure.repository;
 
-import com.bogdan.tracker.domain.common.PeerUtils;
+import com.bogdan.tracker.common.PeerUtils;
 import com.bogdan.tracker.domain.model.Peer;
 import com.bogdan.tracker.infrastructure.repository.jpa.PeerJpaRepository;
 import com.bogdan.tracker.infrastructure.repository.jpa.impl.PeerRepositoryImpl;

@@ -1,6 +1,6 @@
-package com.bogdan.tracker.domain.repository;
+package com.bogdan.tracker.infrastructure.repository;
 
-import com.bogdan.tracker.domain.common.FileInfoUtils;
+import com.bogdan.tracker.common.FileInfoUtils;
 import com.bogdan.tracker.domain.model.FileInfo;
 import com.bogdan.tracker.infrastructure.repository.jpa.FileInfoJpaRepository;
 import com.bogdan.tracker.infrastructure.repository.jpa.impl.FileInfoRepositoryImpl;

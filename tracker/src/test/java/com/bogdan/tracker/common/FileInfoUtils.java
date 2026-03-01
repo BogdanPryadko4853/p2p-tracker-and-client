@@ -1,4 +1,4 @@
-package com.bogdan.tracker.domain.common;
+package com.bogdan.tracker.common;
 
 import com.bogdan.tracker.domain.model.FileInfo;
 import lombok.experimental.UtilityClass;

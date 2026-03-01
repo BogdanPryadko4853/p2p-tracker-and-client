@@ -1,6 +1,6 @@
 package com.bogdan.tracker.domain.service;
 
-import com.bogdan.tracker.domain.common.FileInfoUtils;
+import com.bogdan.tracker.common.FileInfoUtils;
 import com.bogdan.tracker.domain.exception.fileInfo.FileInfoAlreadyExistException;
 import com.bogdan.tracker.domain.exception.fileInfo.FileInfoNotFoundException;
 import com.bogdan.tracker.domain.model.FileInfo;

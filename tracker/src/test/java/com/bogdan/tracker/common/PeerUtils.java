@@ -1,4 +1,4 @@
-package com.bogdan.tracker.domain.common;
+package com.bogdan.tracker.common;
 
 import com.bogdan.tracker.domain.model.Peer;
 import lombok.experimental.UtilityClass;

@@ -4,6 +4,7 @@ import com.bogdan.tracker.domain.model.FileInfo;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 public interface FileInfoService {
 
@@ -21,7 +22,7 @@ public interface FileInfoService {
 
     List<FileInfo> searchFilesByName(String query);
 
-    List<FileInfo> findFilesByPeerId(String peerId);
+    List<FileInfo> findFilesByPeerId(UUID peerId);
 
     void updateFileName(String hash, String newName);
 }

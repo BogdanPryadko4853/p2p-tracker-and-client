@@ -22,6 +22,7 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter")
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 	implementation("org.projectlombok:lombok")
+	implementation("org.springframework.boot:spring-boot-starter-webmvc")
 	annotationProcessor("org.projectlombok:lombok")
 	implementation("org.springframework.boot:spring-boot-starter-flyway")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")

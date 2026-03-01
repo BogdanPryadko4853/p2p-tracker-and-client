@@ -13,6 +13,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -158,7 +159,7 @@ class FileInfoRepositoryTest {
 
     @Test
     void findByPeerId_shouldReturnFilesForPeer() {
-        String peerId = "peer123";
+        UUID peerId = UUID.randomUUID();
         List<FileInfo> expected = FileInfoUtils.createTwoFiles();
         when(fileInfoJpaRepository.findByPeerId(peerId)).thenReturn(expected);
 
@@ -170,7 +171,7 @@ class FileInfoRepositoryTest {
 
     @Test
     void findByPeerId_shouldReturnEmptyList_whenPeerHasNoFiles() {
-        String peerId = "peer456";
+        UUID peerId = UUID.randomUUID();
         when(fileInfoJpaRepository.findByPeerId(peerId)).thenReturn(List.of());
 
         List<FileInfo> actual = fileInfoRepository.findByPeerId(peerId);
@@ -182,7 +183,7 @@ class FileInfoRepositoryTest {
     @Test
     void findByHashAndPeerId_shouldReturnFile_whenPeerHasFile() {
         String hash = "hash123";
-        String peerId = "peer123";
+        UUID peerId = UUID.randomUUID();
         FileInfo expected = FileInfoUtils.createOneFile(hash);
         when(fileInfoJpaRepository.findByHashAndPeerId(hash, peerId)).thenReturn(Optional.of(expected));
 
@@ -196,7 +197,7 @@ class FileInfoRepositoryTest {
     @Test
     void findByHashAndPeerId_shouldReturnEmptyOptional_whenPeerDoesNotHaveFile() {
         String hash = "hash123";
-        String peerId = "peer123";
+        UUID peerId = UUID.randomUUID();
         when(fileInfoJpaRepository.findByHashAndPeerId(hash, peerId)).thenReturn(Optional.empty());
 
         Optional<FileInfo> actual = fileInfoRepository.findByHashAndPeerId(hash, peerId);

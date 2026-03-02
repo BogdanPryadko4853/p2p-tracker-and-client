@@ -23,6 +23,7 @@ public class PeerMapper {
 
     public static PeerResponse toPeerResponse(Peer peer) {
         return PeerResponse.builder()
+                .id(peer.getId())
                 .ip(peer.getIp())
                 .port(peer.getPort())
                 .lastSeen(peer.getLastSeen())

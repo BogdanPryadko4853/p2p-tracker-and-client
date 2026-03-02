@@ -17,5 +17,8 @@ spring:
         format_sql: true
     show-sql: true
 
+  flyway:
+    enabled: false
+
 server:
   port: 8000

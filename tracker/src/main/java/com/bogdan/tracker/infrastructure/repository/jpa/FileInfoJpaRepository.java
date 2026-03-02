@@ -7,13 +7,14 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 public interface FileInfoJpaRepository extends JpaRepository<FileInfo, String> {
     List<FileInfo> findByNameContainingIgnoreCase(String name);
 
     @Query("SELECT f FROM FileInfo f JOIN f.peers p WHERE p.id = :peerId")
-    List<FileInfo> findByPeerId(@Param("peerId") String peerId);
+    List<FileInfo> findByPeerId(@Param("peerId") UUID peerId);
 
     @Query("SELECT f FROM FileInfo f JOIN f.peers p WHERE f.hash = :hash AND p.id = :peerId")
-    Optional<FileInfo> findByHashAndPeerId(@Param("hash") String hash, @Param("peerId") String peerId);
+    Optional<FileInfo> findByHashAndPeerId(@Param("hash") String hash, @Param("peerId") UUID peerId);
 }

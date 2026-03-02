@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -76,7 +77,7 @@ public class FileInfoServiceImpl implements FileInfoService {
     }
 
     @Override
-    public List<FileInfo> findFilesByPeerId(String peerId) {
+    public List<FileInfo> findFilesByPeerId(UUID peerId) {
         log.debug("Fetching files for peer: {}", peerId);
         return fileInfoRepository.findByPeerId(peerId);
     }

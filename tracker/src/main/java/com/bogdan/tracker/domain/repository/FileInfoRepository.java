@@ -4,6 +4,7 @@ import com.bogdan.tracker.domain.model.FileInfo;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 public interface FileInfoRepository {
     List<FileInfo> findAll();
@@ -20,9 +21,9 @@ public interface FileInfoRepository {
 
     List<FileInfo> findByNameContainingIgnoreCase(String name);
 
-    List<FileInfo> findByPeerId(String peerId);
+    List<FileInfo> findByPeerId(UUID peerId);
 
-    Optional<FileInfo> findByHashAndPeerId(String hash, String peerId);
+    Optional<FileInfo> findByHashAndPeerId(String hash, UUID peerId);
 
     void deleteByHash(String hash);
 }

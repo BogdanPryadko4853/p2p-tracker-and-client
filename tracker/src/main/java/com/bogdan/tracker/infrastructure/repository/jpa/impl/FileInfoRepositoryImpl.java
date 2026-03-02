@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 @RequiredArgsConstructor
@@ -51,12 +52,12 @@ public class FileInfoRepositoryImpl implements FileInfoRepository {
     }
 
     @Override
-    public List<FileInfo> findByPeerId(String peerId) {
+    public List<FileInfo> findByPeerId(UUID peerId) {
         return fileInfoJpaRepository.findByPeerId(peerId);
     }
 
     @Override
-    public Optional<FileInfo> findByHashAndPeerId(String hash, String peerId) {
+    public Optional<FileInfo> findByHashAndPeerId(String hash, UUID peerId) {
         return fileInfoJpaRepository.findByHashAndPeerId(hash, peerId);
     }
 

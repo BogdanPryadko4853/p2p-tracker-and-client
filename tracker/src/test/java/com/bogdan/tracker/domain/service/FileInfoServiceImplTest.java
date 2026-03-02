@@ -14,17 +14,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class FileInfoServiceImplTest {
@@ -191,7 +185,7 @@ class FileInfoServiceImplTest {
 
     @Test
     void findFilesByPeerId_shouldReturnFilesForPeer() {
-        String peerId = "peer123";
+        UUID peerId = UUID.randomUUID();
         List<FileInfo> expected = FileInfoUtils.createTwoFiles();
         when(fileInfoRepository.findByPeerId(peerId)).thenReturn(expected);
 
@@ -203,7 +197,7 @@ class FileInfoServiceImplTest {
 
     @Test
     void findFilesByPeerId_shouldReturnEmptyList_whenPeerHasNoFiles() {
-        String peerId = "peer123";
+        UUID peerId = UUID.randomUUID();
         when(fileInfoRepository.findByPeerId(peerId)).thenReturn(List.of());
 
         List<FileInfo> result = fileInfoService.findFilesByPeerId(peerId);

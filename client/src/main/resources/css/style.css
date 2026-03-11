@@ -1,0 +1,158 @@
+.root {
+    -fx-font-family: 'Segoe UI', 'System';
+    -fx-base: #f4f4f4;
+}
+
+.header {
+    -fx-background-color: linear-gradient(to bottom, #2c3e50, #3498db);
+    -fx-padding: 15 20 10 20;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 10, 0, 0, 3);
+}
+
+.title {
+    -fx-text-fill: white;
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+}
+
+.stats-bar {
+    -fx-padding: 10 0 0 0;
+    -fx-text-fill: white;
+}
+
+.stats-bar .label {
+    -fx-text-fill: white;
+    -fx-font-size: 13px;
+}
+
+.stats-value {
+    -fx-font-weight: bold;
+    -fx-text-fill: #f1c40f;
+    -fx-padding: 0 0 0 5;
+}
+
+.status-bar {
+    -fx-background-color: #34495e;
+    -fx-padding: 5 15;
+    -fx-text-fill: white;
+}
+
+.status-bar .label {
+    -fx-text-fill: #bdc3c7;
+    -fx-font-size: 12px;
+}
+
+.tab-pane {
+    -fx-tab-min-height: 40px;
+    -fx-tab-max-height: 40px;
+}
+
+.tab {
+    -fx-background-color: #ecf0f1;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-padding: 5 20;
+}
+
+.tab:selected {
+    -fx-background-color: white;
+}
+
+.tab-pane .tab-header-area {
+    -fx-padding: 5 0 0 10;
+}
+
+.table-view {
+    -fx-background-color: white;
+    -fx-border-color: #bdc3c7;
+    -fx-border-radius: 5;
+    -fx-padding: 5;
+}
+
+.table-view .column-header {
+    -fx-background-color: #3498db;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+
+.table-view .column-header .label {
+    -fx-text-fill: white;
+}
+
+.table-row-cell:odd {
+    -fx-background-color: #f9f9f9;
+}
+
+.table-row-cell:selected {
+    -fx-background-color: #3498db;
+    -fx-text-fill: white;
+}
+
+.button {
+    -fx-background-radius: 5;
+    -fx-padding: 8 15;
+    -fx-font-size: 13px;
+    -fx-cursor: hand;
+}
+
+.primary-button {
+    -fx-background-color: #3498db;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+
+.primary-button:hover {
+    -fx-background-color: #2980b9;
+}
+
+.secondary-button {
+    -fx-background-color: #2ecc71;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+
+.secondary-button:hover {
+    -fx-background-color: #27ae60;
+}
+
+.danger-button {
+    -fx-background-color: #e74c3c;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+
+.danger-button:hover {
+    -fx-background-color: #c0392b;
+}
+
+.settings-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+}
+
+.settings-button:hover {
+    -fx-background-color: rgba(255,255,255,0.2);
+}
+
+.text-field {
+    -fx-background-radius: 5;
+    -fx-border-radius: 5;
+    -fx-border-color: #bdc3c7;
+    -fx-padding: 8;
+    -fx-font-size: 13px;
+}
+
+.text-field:focused {
+    -fx-border-color: #3498db;
+}
+
+.list-view {
+    -fx-background-color: white;
+    -fx-border-color: #bdc3c7;
+    -fx-border-radius: 5;
+}
+
+.progress-bar {
+    -fx-accent: #3498db;
+}

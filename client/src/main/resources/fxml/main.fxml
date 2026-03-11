@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.bogdan.client.controller.MainController"
+            stylesheets="/css/style.css">
+
+    <top>
+        <VBox styleClass="header">
+            <padding>
+                <Insets top="15" right="20" bottom="10" left="20"/>
+            </padding>
+            <HBox alignment="CENTER_LEFT" spacing="10">
+                <Label text="P2P File Sharing Client" styleClass="title">
+                    <font>
+                        <Font name="System Bold" size="24"/>
+                    </font>
+                </Label>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Button fx:id="settingsButton" text="⚙ Settings" styleClass="settings-button"/>
+            </HBox>
+
+            <HBox spacing="20" styleClass="stats-bar">
+                <padding>
+                    <Insets top="10" bottom="0"/>
+                </padding>
+                <Label text="Active Peers:"/>
+                <Label fx:id="peersCountLabel" text="0" styleClass="stats-value"/>
+                <Label text="Shared Files:"/>
+                <Label fx:id="sharedCountLabel" text="0" styleClass="stats-value"/>
+                <Label text="Downloads:"/>
+                <Label fx:id="downloadsCountLabel" text="0" styleClass="stats-value"/>
+            </HBox>
+        </VBox>
+    </top>
+
+    <center>
+        <TabPane fx:id="mainTabPane" tabClosingPolicy="UNAVAILABLE">
+            <!-- Таб поиска -->
+            <Tab text="🔍 Search">
+                <VBox spacing="10">
+                    <padding>
+                        <Insets top="10" right="10" bottom="10" left="10"/>
+                    </padding>
+                    <HBox spacing="10" alignment="CENTER_LEFT">
+                        <TextField fx:id="searchField" promptText="Search for files..." HBox.hgrow="ALWAYS"/>
+                        <Button fx:id="searchButton" text="Search" styleClass="primary-button"/>
+                    </HBox>
+
+                    <TableView fx:id="searchResultsTable" VBox.vgrow="ALWAYS">
+                        <columns>
+                            <TableColumn fx:id="fileNameColumn" text="File Name" prefWidth="250"/>
+                            <TableColumn fx:id="fileSizeColumn" text="Size" prefWidth="100"/>
+                            <TableColumn fx:id="fileHashColumn" text="Hash" prefWidth="150"/>
+                            <TableColumn fx:id="peersCountColumn" text="Peers" prefWidth="80"/>
+                        </columns>
+                    </TableView>
+                </VBox>
+            </Tab>
+
+            <Tab text="⬇ Downloads">
+                <VBox spacing="10">
+                    <padding>
+                        <Insets top="10" right="10" bottom="10" left="10"/>
+                    </padding>
+                    <TableView fx:id="downloadsTable" VBox.vgrow="ALWAYS">
+                        <columns>
+                            <TableColumn fx:id="downloadNameColumn" text="File Name" prefWidth="250"/>
+                            <TableColumn fx:id="downloadProgressColumn" text="Progress" prefWidth="150"/>
+                            <TableColumn fx:id="downloadSpeedColumn" text="Speed" prefWidth="100"/>
+                            <TableColumn fx:id="downloadStatusColumn" text="Status" prefWidth="100"/>
+                        </columns>
+                    </TableView>
+                </VBox>
+            </Tab>
+
+            <Tab text="⬆ Shared">
+                <VBox spacing="10">
+                    <padding>
+                        <Insets top="10" right="10" bottom="10" left="10"/>
+                    </padding>
+                    <HBox spacing="10" alignment="CENTER_RIGHT">
+                        <Button fx:id="addShareButton" text="Add File" styleClass="secondary-button"/>
+                        <Button fx:id="removeShareButton" text="Remove" styleClass="danger-button"/>
+                    </HBox>
+
+                    <ListView fx:id="sharedFilesList" VBox.vgrow="ALWAYS"/>
+
+                    <HBox spacing="10" alignment="CENTER_LEFT">
+                        <Label text="Upload Speed:"/>
+                        <ProgressBar fx:id="uploadProgressBar" prefWidth="200" progress="0"/>
+                        <Label fx:id="uploadSpeedLabel" text="0 KB/s"/>
+                    </HBox>
+                </VBox>
+            </Tab>
+        </TabPane>
+    </center>
+
+    <bottom>
+        <HBox styleClass="status-bar" spacing="10">
+            <padding>
+                <Insets top="5" right="15" bottom="5" left="15"/>
+            </padding>
+            <Label fx:id="statusLabel" text="Ready" HBox.hgrow="ALWAYS"/>
+            <Label text="P2P Network"/>
+        </HBox>
+    </bottom>
+
+</BorderPane>

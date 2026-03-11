@@ -10,6 +10,12 @@ import com.bogdan.tracker.domain.model.FileInfo;
 import com.bogdan.tracker.domain.model.Peer;
 import com.bogdan.tracker.domain.service.FileInfoService;
 import com.bogdan.tracker.domain.service.PeerService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -30,28 +36,53 @@ import java.util.UUID;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/peers")
+@Tag(name = "Peer Controller", description = "Управление пирами в P2P сети")
 public class PeerController {
 
     private final PeerService peerService;
     private final FileInfoService fileInfoService;
 
+    @Operation(summary = "Регистрация нового пира")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Пир успешно зарегистрирован"),
+            @ApiResponse(responseCode = "400", description = "Неверные данные запроса", content = @Content),
+            @ApiResponse(responseCode = "409", description = "Пир с таким IP и портом уже существует", content = @Content)
+    })
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/register")
-    public void registerPeer(@RequestBody PeerRegisterRequest request) {
+    public void registerPeer(
+            @Parameter(description = "Данные для регистрации пира", required = true)
+            @RequestBody PeerRegisterRequest request) {
         Peer peer = PeerMapper.toPeer(request);
         peerService.savePeer(peer);
     }
 
+    @Operation(summary = "Отправить heartbeat (сигнал жизни)")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Heartbeat принят"),
+            @ApiResponse(responseCode = "404", description = "Пир не найден", content = @Content)
+    })
     @PostMapping("/{peerId}/heartbeat")
-    public void heartbeat(@PathVariable UUID peerId) {
+    public void heartbeat(
+            @Parameter(description = "ID пира", required = true, example = "123e4567-e89b-12d3-a456-426614174000")
+            @PathVariable UUID peerId) {
         peerService.updateLastSeenPeer(peerId);
     }
 
+    @Operation(summary = "Получить информацию о пире по ID")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Информация о пире найдена"),
+            @ApiResponse(responseCode = "404", description = "Пир не найден", content = @Content)
+    })
     @GetMapping("/{peerId}")
-    public PeerResponse getPeer(@PathVariable UUID peerId) {
+    public PeerResponse getPeer(
+            @Parameter(description = "ID пира", required = true)
+            @PathVariable UUID peerId) {
         return PeerMapper.toPeerResponse(peerService.findPeerById(peerId));
     }
 
+    @Operation(summary = "Получить список всех пиров")
+    @ApiResponse(responseCode = "200", description = "Список пиров получен")
     @GetMapping
     public List<PeerResponse> getAllPeers() {
         return peerService.findAllPeers().stream()
@@ -59,39 +90,69 @@ public class PeerController {
                 .toList();
     }
 
+    @Operation(summary = "Удалить пира")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Пир успешно удалён"),
+            @ApiResponse(responseCode = "404", description = "Пир не найден", content = @Content)
+    })
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{peerId}")
-    public void deletePeer(@PathVariable UUID peerId) {
+    public void deletePeer(
+            @Parameter(description = "ID пира", required = true)
+            @PathVariable UUID peerId) {
         peerService.deletePeer(peerId);
     }
 
+    @Operation(summary = "Получить список пиров, раздающих файл")
+    @ApiResponse(responseCode = "200", description = "Список пиров получен")
     @GetMapping("/files/{fileHash}/peers")
-    public List<PeerResponse> getPeersByFileHash(@PathVariable String fileHash) {
+    public List<PeerResponse> getPeersByFileHash(
+            @Parameter(description = "Хеш файла", required = true, example = "a1b2c3d4e5f6...")
+            @PathVariable String fileHash) {
         return peerService.findPeersByFileHash(fileHash).stream()
                 .map(PeerMapper::toPeerResponse)
                 .toList();
     }
 
+    @Operation(summary = "Получить список файлов пира")
+    @ApiResponse(responseCode = "200", description = "Список файлов получен")
     @GetMapping("/{peerId}/files")
-    public List<FileInfoDto> getFilesOfPeer(@PathVariable UUID peerId) {
+    public List<FileInfoDto> getFilesOfPeer(
+            @Parameter(description = "ID пира", required = true)
+            @PathVariable UUID peerId) {
         return fileInfoService.findFilesByPeerId(peerId).stream()
                 .map(FileInfoMapper::toFileInfoDto)
                 .toList();
     }
 
+    @Operation(summary = "Поиск файлов по имени")
+    @ApiResponse(responseCode = "200", description = "Результаты поиска")
     @GetMapping("/files/search")
-    public List<FileInfoDto> searchFilesByName(@RequestParam String query) {
+    public List<FileInfoDto> searchFilesByName(
+            @Parameter(description = "Поисковый запрос", required = true, example = "photo")
+            @RequestParam String query) {
         return fileInfoService.searchFilesByName(query).stream()
                 .map(FileInfoMapper::toFileInfoDto)
                 .toList();
     }
 
+    @Operation(summary = "Удалить файл у пира")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Файл успешно удалён"),
+            @ApiResponse(responseCode = "404", description = "Файл не найден", content = @Content)
+    })
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{peerId}/files/{fileHash}")
-    public void removeFileFromPeer(@PathVariable UUID peerId, @PathVariable String fileHash) {
+    public void removeFileFromPeer(
+            @Parameter(description = "ID пира", required = true)
+            @PathVariable UUID peerId,
+            @Parameter(description = "Хеш файла", required = true)
+            @PathVariable String fileHash) {
         fileInfoService.deleteFile(fileHash);
     }
 
+    @Operation(summary = "Получить статистику активных пиров")
+    @ApiResponse(responseCode = "200", description = "Статистика получена")
     @GetMapping("/stats/active")
     public ActivePeersStatsResponse getActivePeersStats() {
         long activeCount = peerService.findActivePeers(LocalDateTime.now().minusMinutes(5)).size();
@@ -101,20 +162,34 @@ public class PeerController {
                 .build();
     }
 
+    @Operation(summary = "Обновить список файлов пира")
+    @ApiResponse(responseCode = "200", description = "Список файлов обновлён")
     @PutMapping("/{peerId}/files")
-    public void updateFilesOfPeer(@PathVariable UUID peerId, @RequestBody List<FileInfoDto> files) {
+    public void updateFilesOfPeer(
+            @Parameter(description = "ID пира", required = true)
+            @PathVariable UUID peerId,
+            @Parameter(description = "Новый список файлов", required = true)
+            @RequestBody List<FileInfoDto> files) {
         files.forEach(fileInfoDto -> {
             FileInfo fileInfo = FileInfoMapper.toFileInfo(fileInfoDto);
             fileInfoService.saveFile(fileInfo);
         });
     }
 
+    @Operation(summary = "Добавить файл пиру")
+    @ApiResponse(responseCode = "200", description = "Файл добавлен")
     @PostMapping("/{peerId}/files")
-    public void addFileToPeer(@PathVariable UUID peerId, @RequestBody FileInfoDto file) {
+    public void addFileToPeer(
+            @Parameter(description = "ID пира", required = true)
+            @PathVariable UUID peerId,
+            @Parameter(description = "Информация о файле", required = true)
+            @RequestBody FileInfoDto file) {
         FileInfo fileInfo = FileInfoMapper.toFileInfo(file);
         fileInfoService.saveFile(fileInfo);
     }
 
+    @Operation(summary = "Получить общее количество пиров")
+    @ApiResponse(responseCode = "200", description = "Количество пиров")
     @GetMapping("/stats/total")
     public Long getTotalPeersStats() {
         return peerService.findAllPeers().stream().count();

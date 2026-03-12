@@ -41,7 +41,6 @@ public class JavaFxApplication extends Application {
         primaryStage.show();
 
         MainController controller = fxWeaver.getBean(MainController.class);
-        controller.loadDemoData();
     }
 
     @Override

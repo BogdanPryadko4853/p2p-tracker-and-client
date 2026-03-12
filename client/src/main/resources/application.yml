@@ -3,4 +3,5 @@ spring:
     name: client
   main:
     web-application-type: none
-
+server:
+  port:

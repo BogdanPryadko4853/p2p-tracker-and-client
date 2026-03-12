@@ -3,14 +3,14 @@ spring:
     name: tracker
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/tracker_db
+    url: jdbc:postgresql://localhost:5434/tracker_db
     username: postgres
     password: postgres
     driver-class-name: org.postgresql.Driver
 
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: none
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
@@ -18,7 +18,9 @@ spring:
     show-sql: true
 
   flyway:
-    enabled: false
+    enabled: true
+    baseline-on-migrate: true
+    validate-on-migrate: false
 
 server:
   port: 8000

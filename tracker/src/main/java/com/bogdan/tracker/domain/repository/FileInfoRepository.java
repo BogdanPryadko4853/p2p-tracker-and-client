@@ -11,7 +11,7 @@ public interface FileInfoRepository {
 
     Optional<FileInfo> findById(String hash);
 
-    void save(FileInfo FileInfo);
+    FileInfo save(FileInfo FileInfo);
 
     void delete(FileInfo FileInfo);
 

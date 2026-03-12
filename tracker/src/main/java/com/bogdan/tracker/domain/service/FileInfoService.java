@@ -8,7 +8,7 @@ import java.util.UUID;
 
 public interface FileInfoService {
 
-    void saveFile(FileInfo fileInfo);
+    FileInfo saveFile(FileInfo fileInfo);
 
     void deleteFile(String hash);
 

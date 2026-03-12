@@ -24,13 +24,15 @@ public class FileInfoServiceImpl implements FileInfoService {
 
     @Override
     @Transactional
-    public void saveFile(FileInfo fileInfo) {
-        fileInfoRepository.findById(fileInfo.getHash()).ifPresent(existingFile -> {
+    public FileInfo saveFile(FileInfo fileInfo) {
+        if (fileInfoRepository.existsById(fileInfo.getHash())) {
             throw new FileInfoAlreadyExistException("File already exists with hash: " + fileInfo.getHash());
-        });
-        fileInfoRepository.save(fileInfo);
-        log.info("File saved with hash: {}", fileInfo.getHash());
+        }
+        FileInfo saved = fileInfoRepository.save(fileInfo);
+        log.info("File saved with hash: {}", saved.getHash());
+        return saved;
     }
+
 
     @Override
     @Transactional

@@ -2,8 +2,10 @@ package com.bogdan.tracker.domain.service.impl;
 
 import com.bogdan.tracker.domain.exception.Peer.PeerAlreadyExistsException;
 import com.bogdan.tracker.domain.exception.Peer.PeerNotFoundException;
+import com.bogdan.tracker.domain.model.FileInfo;
 import com.bogdan.tracker.domain.model.Peer;
 import com.bogdan.tracker.domain.repository.PeerRepository;
+import com.bogdan.tracker.domain.service.FileInfoService;
 import com.bogdan.tracker.domain.service.PeerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -11,7 +13,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -21,6 +25,7 @@ import java.util.UUID;
 public class PeerServiceImpl implements PeerService {
 
     private final PeerRepository peerRepository;
+    private final FileInfoService fileInfoService;
 
     @Override
     @Transactional
@@ -35,6 +40,20 @@ public class PeerServiceImpl implements PeerService {
 
         if (peer.getLastSeen() == null) {
             peer.setLastSeen(LocalDateTime.now());
+        }
+
+        if (peer.getFiles() != null && !peer.getFiles().isEmpty()) {
+            List<FileInfo> managedFiles = new ArrayList<>();
+            for (FileInfo file : peer.getFiles()) {
+                Optional<FileInfo> existing = fileInfoService.findFileById(file.getHash());
+                if (existing.isPresent()) {
+                    managedFiles.add(existing.get());
+                } else {
+                    FileInfo saved = fileInfoService.saveFile(file);
+                    managedFiles.add(saved);
+                }
+            }
+            peer.setFiles(managedFiles);
         }
 
         peerRepository.save(peer);

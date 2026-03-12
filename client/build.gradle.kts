@@ -26,12 +26,16 @@ repositories {
 
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter")
+    implementation("org.springframework.boot:spring-boot-starter-webmvc")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
     implementation("org.openjfx:javafx-controls:21.0.2")
     implementation("org.openjfx:javafx-fxml:21.0.2")
     implementation("net.rgielen:javafx-weaver-spring-boot-starter:2.0.1")
+
+    compileOnly("org.projectlombok:lombok")
+    annotationProcessor("org.projectlombok:lombok")
 }
 
 tasks.withType<Test> {

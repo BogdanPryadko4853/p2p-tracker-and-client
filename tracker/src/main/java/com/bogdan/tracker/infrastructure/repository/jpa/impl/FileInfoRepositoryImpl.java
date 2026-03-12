@@ -27,8 +27,8 @@ public class FileInfoRepositoryImpl implements FileInfoRepository {
     }
 
     @Override
-    public void save(FileInfo fileInfo) {
-        fileInfoJpaRepository.save(fileInfo);
+    public FileInfo save(FileInfo fileInfo) {
+        return fileInfoJpaRepository.save(fileInfo);
     }
 
     @Override

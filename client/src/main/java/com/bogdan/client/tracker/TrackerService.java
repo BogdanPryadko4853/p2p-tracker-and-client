@@ -19,7 +19,6 @@ import tools.jackson.databind.ObjectMapper;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.Executors;
@@ -53,10 +52,10 @@ public class TrackerService {
 
             log.info("Registering with tracker at {} with {} shared files", url, sharedFiles.size());
 
-            ResponseEntity<Map> response = restTemplate.postForEntity(url, entity, Map.class);
+            ResponseEntity<UUID> peerFrom = restTemplate.postForEntity(url, entity, UUID.class);
 
-            if (response.getBody() != null && response.getBody().containsKey("peerId")) {
-                this.peerId = UUID.fromString(response.getBody().get("peerId").toString());
+            if (peerFrom.getBody() != null) {
+                this.peerId = peerFrom.getBody();
                 log.info("Registered with tracker. Peer ID: {}", peerId);
 
                 for (FileInfoDto file : sharedFiles) {
@@ -95,6 +94,19 @@ public class TrackerService {
         } catch (Exception e) {
             log.error("Search failed: {}", e.getMessage(), e);
             return Collections.emptyList();
+        }
+    }
+
+    public void updateSharedFiles(List<FileInfoDto> sharedFiles) {
+        try {
+            String url = trackerUrl + "/api/peers/" + peerId + "/files";
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<List<FileInfoDto>> entity = new HttpEntity<>(sharedFiles, headers);
+            restTemplate.put(url, entity);
+            log.info("Updated shared files on tracker, count: {}", sharedFiles.size());
+        } catch (Exception e) {
+            log.error("Failed to update shared files: {}", e.getMessage());
         }
     }
 

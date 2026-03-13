@@ -8,6 +8,8 @@ import java.util.UUID;
 
 public interface FileInfoService {
 
+    FileInfo updateFile(FileInfo fileInfo);
+
     FileInfo saveFile(FileInfo fileInfo);
 
     void deleteFile(String hash);

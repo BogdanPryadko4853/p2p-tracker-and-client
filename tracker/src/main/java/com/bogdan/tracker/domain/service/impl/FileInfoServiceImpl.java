@@ -33,6 +33,12 @@ public class FileInfoServiceImpl implements FileInfoService {
         return saved;
     }
 
+    @Override
+    @Transactional
+    public FileInfo updateFile(FileInfo fileInfo) {
+        return fileInfoRepository.save(fileInfo);
+    }
+
 
     @Override
     @Transactional

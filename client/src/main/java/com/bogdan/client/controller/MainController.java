@@ -6,6 +6,8 @@ import com.bogdan.client.infra.FileManager;
 import com.bogdan.client.p2p.P2PService;
 import com.bogdan.client.tracker.TrackerService;
 import javafx.application.Platform;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -21,13 +23,17 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+import javafx.stage.FileChooser;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import net.rgielen.fxweaver.core.FxmlView;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
@@ -80,8 +86,6 @@ public class MainController {
     @FXML
     private TableColumn<DownloadItem, String> downloadProgressColumn;
     @FXML
-    private TableColumn<DownloadItem, String> downloadSpeedColumn;
-    @FXML
     private TableColumn<DownloadItem, String> downloadStatusColumn;
     @FXML
     private ListView<String> sharedFilesList;
@@ -123,15 +127,16 @@ public class MainController {
             Platform.runLater(() -> {
                 DownloadItem item = downloadItemMap.get(task.getId());
                 if (item != null) {
-                    item.setProgress(task.getProgress() + "%");
-                    item.setStatus(task.getStatus());
-
                     if ("Completed".equals(task.getStatus())) {
-                        String path = Paths.get(task.getDownloadPath()).toAbsolutePath().normalize().toString();
-                        item.setStatus("Completed - saved to: " + path);
+                        item.setStatus("Completed");
+                        Path path = Paths.get(task.getDownloadPath()).toAbsolutePath().normalize();
+                        item.setDownloadPath(path.toString());
                         log.info("Download completed and saved to: {}", path);
+                    } else if ("Failed".equals(task.getStatus())) {
+                        item.setStatus("Failed");
+                    } else {
+                        item.setStatus("Downloading");
                     }
-
                     downloadsTable.refresh();
                     updateStats();
                 }
@@ -148,8 +153,29 @@ public class MainController {
         }
 
         refreshSharedFiles();
-
         downloadsTable.setItems(downloads);
+
+        downloadsTable.setOnMouseClicked(event -> {
+            if (event.getClickCount() == 2) {
+                DownloadItem selected = downloadsTable.getSelectionModel().getSelectedItem();
+                if (selected != null && "Completed".equals(selected.getStatus())) {
+                    try {
+                        String path = selected.getDownloadPath();
+                        if (path != null && !path.isEmpty()) {
+                            File file = new File(path);
+                            if (file.exists()) {
+                                String command = "explorer.exe /select,\"" + file.getAbsolutePath() + "\"";
+                                Runtime.getRuntime().exec(command);
+                            } else {
+                                log.warn("File does not exist: {}", path);
+                            }
+                        }
+                    } catch (IOException e) {
+                        log.error("Failed to open folder: {}", e.getMessage());
+                    }
+                }
+            }
+        });
     }
 
     private void setupSearchTable() {
@@ -173,10 +199,9 @@ public class MainController {
     }
 
     private void setupDownloadsTable() {
-        downloadNameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
-        downloadProgressColumn.setCellValueFactory(new PropertyValueFactory<>("progress"));
-        downloadSpeedColumn.setCellValueFactory(new PropertyValueFactory<>("speed"));
-        downloadStatusColumn.setCellValueFactory(new PropertyValueFactory<>("status"));
+        downloadNameColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getName()));
+        downloadProgressColumn.setCellValueFactory(cellData -> new SimpleStringProperty(""));
+        downloadStatusColumn.setCellValueFactory(cellData -> cellData.getValue().statusProperty());
 
         downloadsTable.setPlaceholder(new Label("No active downloads"));
         downloadsTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
@@ -250,18 +275,12 @@ public class MainController {
                     .size(file.getSizeInBytes())
                     .build();
 
-            p2pService.downloadFile(dto, peer, file.getName());
+            String downloadId = dto.getHash() + "_" + System.currentTimeMillis();
+            p2pService.downloadFile(dto, peer, file.getName(), downloadId);
 
-            DownloadItem item = new DownloadItem(
-                    file.getName(),
-                    "0%",
-                    "0 KB/s",
-                    "Starting"
-            );
-
-            downloadItemMap.put(dto.getHash() + "_" + System.currentTimeMillis(), item);
+            DownloadItem item = new DownloadItem(downloadId, file.getName());
+            downloadItemMap.put(downloadId, item);
             downloads.add(item);
-
             statusLabel.setText("Download started: " + file.getName());
             log.info("Started download of {} from {}:{}", file.getName(), peer.getIp(), peer.getPort());
 
@@ -271,16 +290,45 @@ public class MainController {
         }
     }
 
+    @FXML
     private void addSharedFile() {
-        statusLabel.setText("Add shared file - not implemented yet");
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Select file to share");
+        File selectedFile = fileChooser.showOpenDialog(mainTabPane.getScene().getWindow());
+        if (selectedFile != null) {
+            try {
+                Path destPath = Paths.get(fileManager.getSharedDir(), selectedFile.getName());
+                if (!Files.exists(destPath)) {
+                    Files.copy(selectedFile.toPath(), destPath);
+                }
+
+                refreshSharedFiles();
+                trackerService.updateSharedFiles(fileManager.getSharedFiles());
+
+                statusLabel.setText("File added to shares: " + selectedFile.getName());
+                log.info("Added shared file: {}", selectedFile.getName());
+            } catch (Exception e) {
+                log.error("Failed to add shared file: {}", e.getMessage());
+                statusLabel.setText("Failed to add file");
+            }
+        }
     }
 
+    @FXML
     private void removeSharedFile() {
         String selected = sharedFilesList.getSelectionModel().getSelectedItem();
         if (selected != null) {
-            sharedFilesList.getItems().remove(selected);
-            updateStats();
-            statusLabel.setText("File removed from shares");
+            String fileName = selected.split(" \\(")[0];
+            File fileToDelete = new File(fileManager.getSharedDir(), fileName);
+            if (fileToDelete.exists()) {
+                fileToDelete.delete();
+            }
+
+            refreshSharedFiles();
+            trackerService.updateSharedFiles(fileManager.getSharedFiles());
+
+            statusLabel.setText("File removed from shares: " + fileName);
+            log.info("Removed shared file: {}", fileName);
         }
     }
 
@@ -291,7 +339,7 @@ public class MainController {
     private void updateStats() {
         sharedCountLabel.setText(String.valueOf(sharedFilesList.getItems().size()));
         downloadsCountLabel.setText(String.valueOf(downloads.size()));
-        uploadSpeedLabel.setText("0 KB/s");
+        uploadSpeedLabel.setText("");
         uploadProgressBar.setProgress(0.0);
     }
 
@@ -344,7 +392,7 @@ public class MainController {
             return size;
         }
 
-        private String formatSize(long bytes) {
+        private static String formatSize(long bytes) {
             if (bytes < 1024) return bytes + " B";
             int exp = (int) (Math.log(bytes) / Math.log(1024));
             String pre = "KMGTPE".charAt(exp - 1) + "";
@@ -352,22 +400,41 @@ public class MainController {
         }
     }
 
-    @Getter
     public static class DownloadItem {
+        @Getter
+        private final String id;
+        @Getter
         private final String name;
-        @Setter
-        private String progress;
-        @Setter
-        private String speed;
-        @Setter
-        private String status;
+        private final StringProperty status = new SimpleStringProperty("Starting");
+        private final StringProperty downloadPath = new SimpleStringProperty("");
 
-        public DownloadItem(String name, String progress, String speed, String status) {
+        public DownloadItem(String id, String name) {
+            this.id = id;
             this.name = name;
-            this.progress = progress;
-            this.speed = speed;
-            this.status = status;
         }
 
+        public String getStatus() {
+            return status.get();
+        }
+
+        public StringProperty statusProperty() {
+            return status;
+        }
+
+        public void setStatus(String status) {
+            this.status.set(status);
+        }
+
+        public String getDownloadPath() {
+            return downloadPath.get();
+        }
+
+        public StringProperty downloadPathProperty() {
+            return downloadPath;
+        }
+
+        public void setDownloadPath(String path) {
+            this.downloadPath.set(path);
+        }
     }
 }

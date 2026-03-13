@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -26,11 +27,23 @@ import java.util.function.Consumer;
 public class P2PService {
 
     private int port;
+    private String downloadDir;
+    private String sharedDir;
     private Consumer<DownloadTask> onDownloadUpdate;
 
     @Value("${p2p.port:6881}")
     public void setPort(int port) {
         this.port = port;
+    }
+
+    @Value("${p2p.download-dir:./downloads}")
+    public void setDownloadDir(String downloadDir) {
+        this.downloadDir = downloadDir;
+    }
+
+    @Value("${p2p.shared-dir:./shared}")
+    public void setSharedDir(String sharedDir) {
+        this.sharedDir = sharedDir;
     }
 
     public void setOnDownloadUpdate(Consumer<DownloadTask> callback) {
@@ -101,7 +114,7 @@ public class P2PService {
                 return;
             }
 
-            File file = new File("shared/" + fileInfo.getName());
+            File file = new File(sharedDir + "/" + fileInfo.getName());
             if (!file.exists()) {
                 out.writeUTF("ERROR File not available");
                 return;
@@ -119,8 +132,7 @@ public class P2PService {
         }
     }
 
-    public void downloadFile(FileInfoDto fileInfo, PeerResponse peer, String fileName) {
-        String downloadId = fileInfo.getHash() + "_" + System.currentTimeMillis();
+    public void downloadFile(FileInfoDto fileInfo, PeerResponse peer, String fileName, String downloadId) {
         DownloadTask task = new DownloadTask(downloadId, fileInfo, peer, fileName);
         downloads.put(downloadId, task);
         executorService.submit(task);
@@ -148,7 +160,7 @@ public class P2PService {
         @Override
         public void run() {
             status = "Downloading";
-            downloadPath = "downloads/" + fileName;
+            downloadPath = downloadDir + "/" + fileName;
             File file = new File(downloadPath);
             file.getParentFile().mkdirs();
 
@@ -184,8 +196,8 @@ public class P2PService {
                 }
 
                 status = "Completed";
-                log.info("Download completed: {} saved to {}", fileName,
-                        Paths.get(downloadPath).toAbsolutePath().normalize());
+                Path fullPath = Paths.get(downloadPath).toAbsolutePath().normalize();
+                log.info("Download completed: {} saved to {}", fileName, fullPath);
 
                 if (onDownloadUpdate != null) {
                     onDownloadUpdate.accept(this);

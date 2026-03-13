@@ -48,13 +48,13 @@ public class PeerController {
             @ApiResponse(responseCode = "400", description = "Неверные данные запроса", content = @Content),
             @ApiResponse(responseCode = "409", description = "Пир с таким IP и портом уже существует", content = @Content)
     })
-    @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/register")
-    public void registerPeer(
-            @Parameter(description = "Данные для регистрации пира", required = true)
-            @RequestBody PeerRegisterRequest request) {
+    @ResponseStatus(HttpStatus.CREATED)
+    public UUID registerPeer(@RequestBody PeerRegisterRequest request) {
         Peer peer = PeerMapper.toPeer(request);
         peerService.savePeer(peer);
+        System.out.println(peer.getId());
+        return peer.getId();
     }
 
     @Operation(summary = "Отправить heartbeat (сигнал жизни)")
@@ -172,7 +172,7 @@ public class PeerController {
             @RequestBody List<FileInfoDto> files) {
         files.forEach(fileInfoDto -> {
             FileInfo fileInfo = FileInfoMapper.toFileInfo(fileInfoDto);
-            fileInfoService.saveFile(fileInfo);
+            fileInfoService.updateFile(fileInfo);
         });
     }
 

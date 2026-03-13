@@ -1,12 +1,10 @@
-package com.bogdan.tracker.domain.service.impl;
+package com.bogdan.tracker.domain.service;
 
 import com.bogdan.tracker.domain.exception.Peer.PeerAlreadyExistsException;
 import com.bogdan.tracker.domain.exception.Peer.PeerNotFoundException;
 import com.bogdan.tracker.domain.model.FileInfo;
 import com.bogdan.tracker.domain.model.Peer;
-import com.bogdan.tracker.domain.repository.PeerRepository;
-import com.bogdan.tracker.domain.service.FileInfoService;
-import com.bogdan.tracker.domain.service.PeerService;
+import com.bogdan.tracker.infrastructure.repository.jpa.PeerJpaRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -22,13 +20,11 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class PeerServiceImpl implements PeerService {
+public class PeerServiceData {
 
-    private final PeerRepository peerRepository;
-    private final FileInfoService fileInfoService;
+    private final PeerJpaRepository peerRepository;
+    private final FileInfoServiceData fileInfoService;
 
-
-    @Override
     @Transactional
     public UUID registerPeer(Peer peer) {
         Peer existingPeer = findPeerByIpAndPort(peer.getIp(), peer.getPort());
@@ -38,12 +34,15 @@ public class PeerServiceImpl implements PeerService {
         }
         log.info("Peer already exists: {}", existingPeer.getIp());
         if (!existingPeer.getFiles().equals(peer.getFiles())) {
-            peer.getFiles().forEach(fileInfoService::updateFile);
+            peer.getFiles().forEach(newFile -> {
+                if (!existingPeer.getFiles().contains(newFile)) {
+                    fileInfoService.updateFile(newFile);
+                }
+            });
         }
         return existingPeer.getId();
     }
 
-    @Override
     @Transactional
     public void savePeer(Peer peer) {
         peerRepository.findByIpAndPort(peer.getIp(), peer.getPort())
@@ -75,7 +74,6 @@ public class PeerServiceImpl implements PeerService {
         peerRepository.save(peer);
     }
 
-    @Override
     @Transactional
     public void deletePeer(UUID peerId) {
         Peer peer = findPeerById(peerId);
@@ -83,25 +81,21 @@ public class PeerServiceImpl implements PeerService {
         log.info("Peer deleted with id: {}", peerId);
     }
 
-    @Override
     @Transactional
     public void deletePeer(Peer peer) {
         deletePeer(peer.getId());
     }
 
-    @Override
     public List<Peer> findAllPeers() {
         log.debug("Fetching all peers");
         return peerRepository.findAll();
     }
 
-    @Override
     public Peer findPeerById(UUID id) {
         return peerRepository.findById(id)
                 .orElseThrow(() -> new PeerNotFoundException("Peer with id " + id + " not found"));
     }
 
-    @Override
     @Transactional
     public Peer updateLastSeenPeer(UUID id) {
         Peer currentPeer = findPeerById(id);
@@ -110,7 +104,6 @@ public class PeerServiceImpl implements PeerService {
         return currentPeer;
     }
 
-    @Override
     public Peer findPeerByIpAndPort(String ip, int port) {
         return peerRepository.findByIpAndPort(ip, port)
                 .orElseThrow(() -> new PeerNotFoundException(
@@ -118,19 +111,16 @@ public class PeerServiceImpl implements PeerService {
                 ));
     }
 
-    @Override
     public List<Peer> findActivePeers(LocalDateTime since) {
         log.debug("Fetching active peers since: {}", since);
         return peerRepository.findByLastSeenAfter(since);
     }
 
-    @Override
     public List<Peer> findPeersByFileHash(String fileHash) {
         log.debug("Fetching peers for file hash: {}", fileHash);
         return peerRepository.findPeersByFileHash(fileHash);
     }
 
-    @Override
     @Transactional
     public void cleanupInactivePeers(LocalDateTime threshold) {
         int deletedCount = peerRepository.deleteByLastSeenBefore(threshold);

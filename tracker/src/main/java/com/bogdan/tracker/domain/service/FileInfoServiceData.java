@@ -1,10 +1,9 @@
-package com.bogdan.tracker.domain.service.impl;
+package com.bogdan.tracker.domain.service;
 
 import com.bogdan.tracker.domain.exception.fileInfo.FileInfoAlreadyExistException;
 import com.bogdan.tracker.domain.exception.fileInfo.FileInfoNotFoundException;
 import com.bogdan.tracker.domain.model.FileInfo;
-import com.bogdan.tracker.domain.repository.FileInfoRepository;
-import com.bogdan.tracker.domain.service.FileInfoService;
+import com.bogdan.tracker.infrastructure.repository.jpa.FileInfoJpaRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -18,11 +17,10 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class FileInfoServiceImpl implements FileInfoService {
+public class FileInfoServiceData {
 
-    private final FileInfoRepository fileInfoRepository;
+    private final FileInfoJpaRepository fileInfoRepository;
 
-    @Override
     @Transactional
     public FileInfo saveFile(FileInfo fileInfo) {
         if (fileInfoRepository.existsById(fileInfo.getHash())) {
@@ -33,14 +31,12 @@ public class FileInfoServiceImpl implements FileInfoService {
         return saved;
     }
 
-    @Override
     @Transactional
     public FileInfo updateFile(FileInfo fileInfo) {
         return fileInfoRepository.save(fileInfo);
     }
 
 
-    @Override
     @Transactional
     public void deleteFile(String hash) {
         fileInfoRepository.findById(hash).ifPresentOrElse(
@@ -54,28 +50,24 @@ public class FileInfoServiceImpl implements FileInfoService {
         );
     }
 
-    @Override
     public Optional<FileInfo> findFileById(String hash) {
         return fileInfoRepository.findById(hash);
     }
 
-    @Override
+
     public List<FileInfo> findAllFiles() {
         log.debug("Fetching all files");
         return fileInfoRepository.findAll();
     }
 
-    @Override
     public boolean existsFile(String hash) {
         return fileInfoRepository.existsById(hash);
     }
 
-    @Override
     public long countFiles() {
         return fileInfoRepository.count();
     }
 
-    @Override
     public List<FileInfo> searchFilesByName(String query) {
         log.debug("Searching files by name: {}", query);
         if (query == null || query.trim().isEmpty()) {
@@ -84,13 +76,11 @@ public class FileInfoServiceImpl implements FileInfoService {
         return fileInfoRepository.findByNameContainingIgnoreCase(query.trim());
     }
 
-    @Override
     public List<FileInfo> findFilesByPeerId(UUID peerId) {
         log.debug("Fetching files for peer: {}", peerId);
         return fileInfoRepository.findByPeerId(peerId);
     }
 
-    @Override
     @Transactional
     public void updateFileName(String hash, String newName) {
         FileInfo fileInfo = fileInfoRepository.findById(hash)

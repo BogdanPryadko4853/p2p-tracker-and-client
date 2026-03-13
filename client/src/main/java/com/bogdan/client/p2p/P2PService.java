@@ -1,8 +1,10 @@
 package com.bogdan.client.p2p;
 
+import com.bogdan.client.common.Constant;
 import com.bogdan.client.dto.FileInfoDto;
 import com.bogdan.client.dto.PeerResponse;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -25,30 +27,8 @@ import java.util.function.Consumer;
 @Slf4j
 @Service
 public class P2PService {
-
-    private int port;
-    private String downloadDir;
-    private String sharedDir;
+    @Setter
     private Consumer<DownloadTask> onDownloadUpdate;
-
-    @Value("${p2p.port:6881}")
-    public void setPort(int port) {
-        this.port = port;
-    }
-
-    @Value("${p2p.download-dir:./downloads}")
-    public void setDownloadDir(String downloadDir) {
-        this.downloadDir = downloadDir;
-    }
-
-    @Value("${p2p.shared-dir:./shared}")
-    public void setSharedDir(String sharedDir) {
-        this.sharedDir = sharedDir;
-    }
-
-    public void setOnDownloadUpdate(Consumer<DownloadTask> callback) {
-        this.onDownloadUpdate = callback;
-    }
 
     private ServerSocket serverSocket;
     private ExecutorService executorService;
@@ -58,8 +38,8 @@ public class P2PService {
     public void startServer() {
         executorService = Executors.newCachedThreadPool();
         try {
-            serverSocket = new ServerSocket(port);
-            log.info("P2P server started on port {}", port);
+            serverSocket = new ServerSocket(Constant.PORT);
+            log.info("P2P server started on port {}", Constant.PORT);
 
             executorService.submit(() -> {
                 while (!serverSocket.isClosed()) {
@@ -114,7 +94,7 @@ public class P2PService {
                 return;
             }
 
-            File file = new File(sharedDir + "/" + fileInfo.getName());
+            File file = new File(Constant.SHARED_DIR + "/" + fileInfo.getName());
             if (!file.exists()) {
                 out.writeUTF("ERROR File not available");
                 return;
@@ -160,7 +140,7 @@ public class P2PService {
         @Override
         public void run() {
             status = "Downloading";
-            downloadPath = downloadDir + "/" + fileName;
+            downloadPath = Constant.DOWNLOAD_DIR + "/" + fileName;
             File file = new File(downloadPath);
             file.getParentFile().mkdirs();
 

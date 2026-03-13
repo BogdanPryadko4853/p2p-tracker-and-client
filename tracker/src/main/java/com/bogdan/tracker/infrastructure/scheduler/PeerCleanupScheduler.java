@@ -1,6 +1,6 @@
 package com.bogdan.tracker.infrastructure.scheduler;
 
-import com.bogdan.tracker.domain.repository.PeerRepository;
+import com.bogdan.tracker.infrastructure.repository.jpa.PeerJpaRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 @Slf4j
 public class PeerCleanupScheduler {
 
-    private final PeerRepository peerRepository;
+    private final PeerJpaRepository peerRepository;
 
     @Transactional
     @Scheduled(fixedDelay = 60000)

@@ -8,8 +8,8 @@ import com.bogdan.tracker.api.mapper.FileInfoMapper;
 import com.bogdan.tracker.api.mapper.PeerMapper;
 import com.bogdan.tracker.domain.model.FileInfo;
 import com.bogdan.tracker.domain.model.Peer;
-import com.bogdan.tracker.domain.service.FileInfoService;
-import com.bogdan.tracker.domain.service.PeerService;
+import com.bogdan.tracker.domain.service.FileInfoServiceData;
+import com.bogdan.tracker.domain.service.PeerServiceData;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -39,8 +39,8 @@ import java.util.UUID;
 @Tag(name = "Peer Controller", description = "Управление пирами в P2P сети")
 public class PeerController {
 
-    private final PeerService peerService;
-    private final FileInfoService fileInfoService;
+    private final PeerServiceData peerService;
+    private final FileInfoServiceData fileInfoService;
 
     @Operation(summary = "Регистрация нового пира")
     @ApiResponses(value = {

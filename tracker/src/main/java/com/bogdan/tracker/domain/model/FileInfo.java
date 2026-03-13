@@ -35,6 +35,16 @@ public class FileInfo {
     @Column(nullable = false)
     private long size;
 
+
+    /*
+    * private LocalDateTime creation;
+    *
+    *
+    * private LocalDateTime updated;
+    *
+    *
+    * */
+
     @ManyToMany(mappedBy = "files")
     private List<Peer> peers = new ArrayList<>();
 }

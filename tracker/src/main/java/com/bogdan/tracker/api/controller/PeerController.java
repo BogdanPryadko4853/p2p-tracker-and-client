@@ -139,14 +139,12 @@ public class PeerController {
             @ApiResponse(responseCode = "204", description = "Файл успешно удалён"),
             @ApiResponse(responseCode = "404", description = "Файл не найден", content = @Content)
     })
-    @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{peerId}/files/{fileHash}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void removeFileFromPeer(
-            @Parameter(description = "ID пира", required = true)
             @PathVariable UUID peerId,
-            @Parameter(description = "Хеш файла", required = true)
             @PathVariable String fileHash) {
-        fileInfoService.deleteFile(fileHash);
+        peerService.removeFileFromPeer(peerId, fileHash);
     }
 
     @Operation(summary = "Получить статистику активных пиров")

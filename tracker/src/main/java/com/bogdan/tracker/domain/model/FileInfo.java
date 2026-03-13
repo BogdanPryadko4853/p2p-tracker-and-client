@@ -11,7 +11,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,15 +38,13 @@ public class FileInfo {
     @Column(nullable = false)
     private long size;
 
+    @CreationTimestamp
+    @Column(name = "created_time", nullable = false, updatable = false)
+    private LocalDateTime createdTime;
 
-    /*
-    * private LocalDateTime creation;
-    *
-    *
-    * private LocalDateTime updated;
-    *
-    *
-    * */
+    @UpdateTimestamp
+    @Column(name = "updated_time")
+    private LocalDateTime updatedTime;
 
     @ManyToMany(mappedBy = "files")
     private List<Peer> peers = new ArrayList<>();

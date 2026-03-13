@@ -1,5 +1,6 @@
 package com.bogdan.client.controller;
 
+import com.bogdan.client.common.ClientConfigConstant;
 import com.bogdan.client.dto.FileInfoDto;
 import com.bogdan.client.dto.PeerResponse;
 import com.bogdan.client.infra.FileManager;
@@ -47,6 +48,7 @@ public class MainController {
     private final TrackerService trackerService;
     private final P2PService p2pService;
     private final FileManager fileManager;
+    private final ClientConfigConstant clientConfigConstant;
     private final Map<String, DownloadItem> downloadItemMap = new ConcurrentHashMap<>();
 
     @Value("${p2p.port:6881}")
@@ -57,10 +59,11 @@ public class MainController {
 
     public MainController(TrackerService trackerService,
                           P2PService p2pService,
-                          FileManager fileManager) {
+                          FileManager fileManager, ClientConfigConstant clientConfigConstant) {
         this.trackerService = trackerService;
         this.p2pService = p2pService;
         this.fileManager = fileManager;
+        this.clientConfigConstant = clientConfigConstant;
     }
 
     @FXML
@@ -297,7 +300,7 @@ public class MainController {
         File selectedFile = fileChooser.showOpenDialog(mainTabPane.getScene().getWindow());
         if (selectedFile != null) {
             try {
-                Path destPath = Paths.get(fileManager.getSharedDir(), selectedFile.getName());
+                Path destPath = Paths.get(clientConfigConstant.SHARED_DIR, selectedFile.getName());
                 if (!Files.exists(destPath)) {
                     Files.copy(selectedFile.toPath(), destPath);
                 }
@@ -317,18 +320,45 @@ public class MainController {
     @FXML
     private void removeSharedFile() {
         String selected = sharedFilesList.getSelectionModel().getSelectedItem();
-        if (selected != null) {
-            String fileName = selected.split(" \\(")[0];
-            File fileToDelete = new File(fileManager.getSharedDir(), fileName);
+        if (selected == null) {
+            statusLabel.setText("No file selected");
+            return;
+        }
+
+        String fileName = selected.split(" \\(")[0];
+
+        try {
+            FileInfoDto fileToRemove = fileManager.getSharedFiles().stream()
+                    .filter(f -> f.getName().equals(fileName))
+                    .findFirst()
+                    .orElse(null);
+
+            if (fileToRemove == null) {
+                log.warn("File not found in shared files list: {}", fileName);
+                return;
+            }
+
+            // 1. Удаляем на трекере (специфичный endpoint)
+            trackerService.removeFileFromPeer(fileToRemove.getHash());
+
+            // 2. Удаляем из локальной папки
+            File fileToDelete = new File(clientConfigConstant.SHARED_DIR, fileName);
             if (fileToDelete.exists()) {
                 fileToDelete.delete();
             }
 
+            // 3. Удаляем из P2PService
+            p2pService.removeSharedFile(fileToRemove.getHash());
+
+            // 4. Обновляем UI
             refreshSharedFiles();
-            trackerService.updateSharedFiles(fileManager.getSharedFiles());
 
             statusLabel.setText("File removed from shares: " + fileName);
             log.info("Removed shared file: {}", fileName);
+
+        } catch (Exception e) {
+            log.error("Failed to remove shared file: {}", e.getMessage());
+            statusLabel.setText("Failed to remove file: " + e.getMessage());
         }
     }
 

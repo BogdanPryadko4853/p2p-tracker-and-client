@@ -7,7 +7,8 @@
 
 <BorderPane xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.bogdan.client.controller.MainController"
-            stylesheets="/css/style.css">
+            stylesheets="/css/style.css"
+            styleClass="border-pane">
 
     <top>
         <VBox styleClass="header">

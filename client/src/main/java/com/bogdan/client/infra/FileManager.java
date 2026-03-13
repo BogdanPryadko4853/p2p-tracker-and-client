@@ -1,6 +1,6 @@
 package com.bogdan.client.infra;
 
-import com.bogdan.client.common.Constant;
+import com.bogdan.client.common.ClientConfigConstant;
 import com.bogdan.client.dto.FileInfoDto;
 import com.bogdan.client.util.FileUtils;
 import com.bogdan.client.util.HashCalculator;
@@ -17,17 +17,23 @@ import java.util.List;
 @Service
 public class FileManager {
 
-    public FileManager() {
-        FileUtils.createDirectories();
+    private final FileUtils fileUtils;
+
+    private final ClientConfigConstant clientConfigConstant;
+
+    public FileManager(ClientConfigConstant clientConfigConstant, FileUtils fileUtils) {
+        this.clientConfigConstant = clientConfigConstant;
+        this.fileUtils = fileUtils;
+        this.fileUtils.createDirectories();
     }
 
     public List<FileInfoDto> getSharedFiles() {
         List<FileInfoDto> files = new ArrayList<>();
-        File dir = new File(Constant.SHARED_DIR);
+        File dir = new File(clientConfigConstant.SHARED_DIR);
 
         File[] fileList = dir.listFiles();
         if (fileList == null) {
-            log.warn("Shared directory does not exist or is not a directory: {}", Constant.SHARED_DIR);
+            log.warn("Shared directory does not exist or is not a directory: {}", clientConfigConstant.SHARED_DIR);
             return files;
         }
 
@@ -46,7 +52,7 @@ public class FileManager {
                 }
             }
         }
-        log.info("Loaded {} shared files from {}", files.size(), Constant.SHARED_DIR);
+        log.info("Loaded {} shared files from {}", files.size(), clientConfigConstant.SHARED_DIR);
         return files;
     }
 }

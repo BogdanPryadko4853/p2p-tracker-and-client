@@ -14,7 +14,9 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -27,20 +29,65 @@ public class PeerServiceData {
 
     @Transactional
     public UUID registerPeer(Peer peer) {
-        Peer existingPeer = findPeerByIpAndPort(peer.getIp(), peer.getPort());
-        if (existingPeer == null) {
-            savePeer(peer);
-            return peer.getId();
+        Optional<Peer> existingPeerOpt = peerRepository.findByIpAndPort(peer.getIp(), peer.getPort());
+
+        if (existingPeerOpt.isPresent()) {
+            Peer existingPeer = existingPeerOpt.get();
+            log.info("Peer already exists with id: {}", existingPeer.getId());
+            existingPeer.setLastSeen(LocalDateTime.now());
+            updatePeerFiles(existingPeer.getId(), peer.getFiles());
+            return existingPeer.getId();
         }
-        log.info("Peer already exists: {}", existingPeer.getIp());
-        if (!existingPeer.getFiles().equals(peer.getFiles())) {
-            peer.getFiles().forEach(newFile -> {
-                if (!existingPeer.getFiles().contains(newFile)) {
-                    fileInfoService.updateFile(newFile);
-                }
-            });
+
+        prepareNewPeer(peer);
+        Peer savedPeer = peerRepository.save(peer);
+        log.info("New peer registered with id: {}", savedPeer.getId());
+        return savedPeer.getId();
+    }
+
+    @Transactional
+    public void removeFileFromPeer(UUID peerId, String fileHash) {
+        Peer peer = findPeerById(peerId);
+
+        boolean removed = peer.getFiles().removeIf(f -> f.getHash().equals(fileHash));
+
+        if (removed) {
+            peerRepository.save(peer);
+            log.info("File {} removed from peer {}", fileHash, peerId);
         }
-        return existingPeer.getId();
+    }
+
+    @Transactional
+    public void updatePeerFiles(UUID peerId, List<FileInfo> newFiles) {
+        Peer peer = findPeerById(peerId);
+
+        Set<String> oldHashes = peer.getFiles().stream()
+                .map(FileInfo::getHash)
+                .collect(Collectors.toSet());
+
+        List<FileInfo> managedNewFiles = convertToManagedFiles(newFiles);
+
+        peer.getFiles().clear();
+        peer.getFiles().addAll(managedNewFiles);
+
+        peerRepository.saveAndFlush(peer);
+
+        Set<String> newHashes = managedNewFiles.stream()
+                .map(FileInfo::getHash)
+                .collect(Collectors.toSet());
+
+        oldHashes.stream()
+                .filter(hash -> !newHashes.contains(hash))
+                .forEach(hash -> {
+                    List<Peer> otherPeers = peerRepository.findPeersByFileHash(hash)
+                            .stream()
+                            .filter(p -> !p.getId().equals(peerId))
+                            .toList();
+                    if (otherPeers.isEmpty()) {
+                        fileInfoService.deleteFile(hash);
+                        log.info("Orphaned file {} deleted from DB", hash);
+                    }
+                });
     }
 
     @Transactional
@@ -52,25 +99,7 @@ public class PeerServiceData {
                                     peer.getIp(), peer.getPort())
                     );
                 });
-
-        if (peer.getLastSeen() == null) {
-            peer.setLastSeen(LocalDateTime.now());
-        }
-
-        if (peer.getFiles() != null && !peer.getFiles().isEmpty()) {
-            List<FileInfo> managedFiles = new ArrayList<>();
-            for (FileInfo file : peer.getFiles()) {
-                Optional<FileInfo> existing = fileInfoService.findFileById(file.getHash());
-                if (existing.isPresent()) {
-                    managedFiles.add(existing.get());
-                } else {
-                    FileInfo saved = fileInfoService.saveFile(file);
-                    managedFiles.add(saved);
-                }
-            }
-            peer.setFiles(managedFiles);
-        }
-
+        prepareNewPeer(peer);
         peerRepository.save(peer);
     }
 
@@ -104,11 +133,8 @@ public class PeerServiceData {
         return currentPeer;
     }
 
-    public Peer findPeerByIpAndPort(String ip, int port) {
-        return peerRepository.findByIpAndPort(ip, port)
-                .orElseThrow(() -> new PeerNotFoundException(
-                        String.format("Peer not found with ip: %s and port: %d", ip, port)
-                ));
+    public Optional<Peer> findPeerByIpAndPortOpt(String ip, int port) {
+        return peerRepository.findByIpAndPort(ip, port);
     }
 
     public List<Peer> findActivePeers(LocalDateTime since) {
@@ -127,5 +153,28 @@ public class PeerServiceData {
         if (deletedCount > 0) {
             log.info("Cleaned up {} inactive peers (last seen before {})", deletedCount, threshold);
         }
+    }
+
+    private void prepareNewPeer(Peer peer) {
+        if (peer.getLastSeen() == null) {
+            peer.setLastSeen(LocalDateTime.now());
+        }
+        if (peer.getFiles() != null && !peer.getFiles().isEmpty()) {
+            peer.setFiles(convertToManagedFiles(peer.getFiles()));
+        }
+    }
+
+    private List<FileInfo> convertToManagedFiles(List<FileInfo> files) {
+        List<FileInfo> managed = new ArrayList<>();
+        for (FileInfo file : files) {
+            Optional<FileInfo> existing = fileInfoService.findFileById(file.getHash());
+            if (existing.isPresent()) {
+                managed.add(existing.get());
+            } else {
+                FileInfo saved = fileInfoService.saveFile(file);
+                managed.add(saved);
+            }
+        }
+        return managed;
     }
 }

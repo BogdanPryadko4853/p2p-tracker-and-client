@@ -1,12 +1,12 @@
 package com.bogdan.client.p2p;
 
-import com.bogdan.client.common.Constant;
+import com.bogdan.client.common.ClientConfigConstant;
 import com.bogdan.client.dto.FileInfoDto;
 import com.bogdan.client.dto.PeerResponse;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.DataInputStream;
@@ -26,9 +26,11 @@ import java.util.function.Consumer;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class P2PService {
     @Setter
     private Consumer<DownloadTask> onDownloadUpdate;
+    private final ClientConfigConstant clientConfigConstant;
 
     private ServerSocket serverSocket;
     private ExecutorService executorService;
@@ -38,8 +40,8 @@ public class P2PService {
     public void startServer() {
         executorService = Executors.newCachedThreadPool();
         try {
-            serverSocket = new ServerSocket(Constant.PORT);
-            log.info("P2P server started on port {}", Constant.PORT);
+            serverSocket = new ServerSocket(clientConfigConstant.PORT);
+            log.info("P2P server started on port {}", clientConfigConstant.PORT);
 
             executorService.submit(() -> {
                 while (!serverSocket.isClosed()) {
@@ -94,7 +96,7 @@ public class P2PService {
                 return;
             }
 
-            File file = new File(Constant.SHARED_DIR + "/" + fileInfo.getName());
+            File file = new File(clientConfigConstant.SHARED_DIR + "/" + fileInfo.getName());
             if (!file.exists()) {
                 out.writeUTF("ERROR File not available");
                 return;
@@ -140,7 +142,7 @@ public class P2PService {
         @Override
         public void run() {
             status = "Downloading";
-            downloadPath = Constant.DOWNLOAD_DIR + "/" + fileName;
+            downloadPath = clientConfigConstant.DOWNLOAD_DIR+ "/" + fileName;
             File file = new File(downloadPath);
             file.getParentFile().mkdirs();
 

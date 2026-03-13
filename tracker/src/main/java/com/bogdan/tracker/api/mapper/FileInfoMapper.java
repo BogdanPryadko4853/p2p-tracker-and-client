@@ -20,6 +20,8 @@ public class FileInfoMapper {
                 .hash(fileInfo.getHash())
                 .name(fileInfo.getName())
                 .size(fileInfo.getSize())
+                .createdTime(fileInfo.getCreatedTime())
+                .updatedTime(fileInfo.getUpdatedTime())
                 .build();
     }
 }

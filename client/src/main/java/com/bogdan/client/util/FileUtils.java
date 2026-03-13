@@ -1,25 +1,28 @@
 package com.bogdan.client.util;
 
-import com.bogdan.client.common.Constant;
-import lombok.experimental.UtilityClass;
+import com.bogdan.client.common.ClientConfigConstant;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.nio.file.Paths;
 
-@UtilityClass
+@Component
+@RequiredArgsConstructor
 public class FileUtils {
 
-    public static File getDownloadFile(String fileName) {
-        return Paths.get(Constant.DOWNLOAD_DIR, fileName).toFile();
+    private final ClientConfigConstant config;
+
+    public File getDownloadFile(String fileName) {
+        return Paths.get(config.getDOWNLOAD_DIR(), fileName).toFile();
     }
 
-    public static File getSharedFile(String fileName) {
-        return Paths.get(Constant.SHARED_DIR, fileName).toFile();
+    public File getSharedFile(String fileName) {
+        return Paths.get(config.getSHARED_DIR(), fileName).toFile();
     }
 
-    public static void createDirectories() {
-        new File(Constant.SHARED_DIR).mkdirs();
-        new File(Constant.DOWNLOAD_DIR).mkdirs();
+    public void createDirectories() {
+        new File(config.getSHARED_DIR()).mkdirs();
+        new File(config.getDOWNLOAD_DIR()).mkdirs();
     }
-
 }

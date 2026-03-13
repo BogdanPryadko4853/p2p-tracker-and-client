@@ -1,14 +1,5 @@
-/*
+ALTER TABLE file_info
+    ADD COLUMN created_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    ADD COLUMN updated_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
 
-
-alter table file_info
-add column created_time date
-
-
-add column updated_time
-
-
-
-
-
-*/
+UPDATE file_info SET created_time = CURRENT_TIMESTAMP, updated_time = CURRENT_TIMESTAMP;

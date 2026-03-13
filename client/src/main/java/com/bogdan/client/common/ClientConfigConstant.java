@@ -1,13 +1,19 @@
 package com.bogdan.client.common;
 
+import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
-public class Constant {
+@Component
+@Getter
+public class ClientConfigConstant {
 
     @Value("${p2p.download-dir:./downloads}")
-    public static String DOWNLOAD_DIR;
+    public  String DOWNLOAD_DIR;
+
     @Value("${p2p.shared-dir:./shared}")
-    public static String SHARED_DIR;
+    public  String SHARED_DIR;
+
     @Value("${p2p.port:6881}")
-    public static int PORT;
+    public  int PORT;
 }

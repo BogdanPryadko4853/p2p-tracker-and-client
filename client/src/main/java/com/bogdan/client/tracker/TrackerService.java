@@ -127,6 +127,21 @@ public class TrackerService {
         }
     }
 
+    public void removeFileFromPeer(String fileHash) {
+        if (peerId == null) {
+            log.error("Cannot remove file: peerId is null");
+            return;
+        }
+
+        try {
+            String url = trackerUrl + "/api/peers/" + peerId + "/files/" + fileHash;
+            restTemplate.delete(url);
+            log.info("Removed file {} from peer {}", fileHash, peerId);
+        } catch (Exception e) {
+            log.error("Failed to remove file from peer: {}", e.getMessage());
+        }
+    }
+
     private void startHeartbeat() {
         heartbeatScheduler = Executors.newSingleThreadScheduledExecutor();
         heartbeatScheduler.scheduleAtFixedRate(() -> {

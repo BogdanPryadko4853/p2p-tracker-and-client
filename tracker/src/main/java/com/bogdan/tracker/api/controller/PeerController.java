@@ -52,9 +52,7 @@ public class PeerController {
     @ResponseStatus(HttpStatus.CREATED)
     public UUID registerPeer(@RequestBody PeerRegisterRequest request) {
         Peer peer = PeerMapper.toPeer(request);
-        peerService.savePeer(peer);
-        System.out.println(peer.getId());
-        return peer.getId();
+        return peerService.registerPeer(peer);
     }
 
     @Operation(summary = "Отправить heartbeat (сигнал жизни)")

@@ -1,6 +1,7 @@
 package com.bogdan.tracker.domain.service;
 
 import com.bogdan.tracker.domain.model.Peer;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -26,4 +27,6 @@ public interface PeerService {
     List<Peer> findPeersByFileHash(String fileHash);
 
     void cleanupInactivePeers(LocalDateTime threshold);
+
+    UUID registerPeer(Peer peer);
 }

@@ -27,6 +27,22 @@ public class PeerServiceImpl implements PeerService {
     private final PeerRepository peerRepository;
     private final FileInfoService fileInfoService;
 
+
+    @Override
+    @Transactional
+    public UUID registerPeer(Peer peer) {
+        Peer existingPeer = findPeerByIpAndPort(peer.getIp(), peer.getPort());
+        if (existingPeer == null) {
+            savePeer(peer);
+            return peer.getId();
+        }
+        log.info("Peer already exists: {}", existingPeer.getIp());
+        if (!existingPeer.getFiles().equals(peer.getFiles())) {
+            peer.getFiles().forEach(fileInfoService::updateFile);
+        }
+        return existingPeer.getId();
+    }
+
     @Override
     @Transactional
     public void savePeer(Peer peer) {

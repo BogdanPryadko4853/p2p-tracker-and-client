@@ -27,4 +27,5 @@ public interface FileInfoService {
     List<FileInfo> findFilesByPeerId(UUID peerId);
 
     void updateFileName(String hash, String newName);
+
 }

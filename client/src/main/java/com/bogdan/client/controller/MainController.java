@@ -6,6 +6,7 @@ import com.bogdan.client.dto.PeerResponse;
 import com.bogdan.client.infra.FileManager;
 import com.bogdan.client.p2p.P2PService;
 import com.bogdan.client.tracker.TrackerService;
+import com.bogdan.client.util.NetworkUtils;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
@@ -146,10 +147,13 @@ public class MainController {
             });
         });
 
+        String localIp = NetworkUtils.getLocalIp();
+        log.info("Detected local IP: {}", localIp);
+
         try {
-            trackerService.register("127.0.0.1", p2pPort, fileManager.getSharedFiles());
-            log.info("Successfully registered with tracker");
-            statusLabel.setText("Connected to tracker");
+            trackerService.register(localIp, p2pPort, fileManager.getSharedFiles());
+            log.info("Successfully registered with tracker using IP: {}", localIp);
+            statusLabel.setText("Connected to tracker (IP: " + localIp + ")");
         } catch (Exception e) {
             log.error("Failed to register with tracker: {}", e.getMessage());
             statusLabel.setText("Failed to connect to tracker");
@@ -169,8 +173,6 @@ public class MainController {
                             if (file.exists()) {
                                 String command = "explorer.exe /select,\"" + file.getAbsolutePath() + "\"";
                                 Runtime.getRuntime().exec(command);
-                            } else {
-                                log.warn("File does not exist: {}", path);
                             }
                         }
                     } catch (IOException e) {

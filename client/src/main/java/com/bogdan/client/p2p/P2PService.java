@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -69,27 +70,54 @@ public class P2PService {
 
         @Override
         public void run() {
-            try (DataInputStream in = new DataInputStream(socket.getInputStream());
-                 DataOutputStream out = new DataOutputStream(socket.getOutputStream())) {
+            DataInputStream in = null;
+            DataOutputStream out = null;
+            try {
+                in = new DataInputStream(socket.getInputStream());
+                out = new DataOutputStream(socket.getOutputStream());
 
-                String command = in.readUTF();
+                while (true) {
+                    String command;
+                    try {
+                        command = in.readUTF();
+                    } catch (EOFException e) {
+                        log.debug("Client closed connection");
+                        break;
+                    }
 
-                if (command.startsWith("GET")) {
-                    String[] parts = command.split(" ");
-                    String fileHash = parts[1];
-                    long offset = Long.parseLong(parts[2]);
-                    int length = Integer.parseInt(parts[3]);
+                    if (command == null) break;
 
-                    handleFileRequest(fileHash, offset, length, out);
+                    if (command.startsWith("GET")) {
+                        String[] parts = command.split(" ");
+                        if (parts.length < 4) {
+                            out.writeUTF("ERROR Invalid command");
+                            out.flush();
+                            continue;
+                        }
+                        String fileHash = parts[1];
+                        long offset = Long.parseLong(parts[2]);
+                        int length = Integer.parseInt(parts[3]);
+
+                        handleFileRequest(fileHash, offset, length, out);
+                        out.flush();
+                    } else {
+                        log.warn("Unknown command: {}", command);
+                    }
                 }
-
             } catch (IOException e) {
-                log.error("Error handling client: {}", e.getMessage());
+                if (!socket.isClosed()) {
+                    log.error("Error handling client: {}", e.getMessage());
+                }
+            } finally {
+                try {
+                    socket.close();
+                } catch (IOException e) {
+                    log.error("Error closing socket: {}", e.getMessage());
+                }
             }
         }
 
-        private void handleFileRequest(String fileHash, long offset, int length, DataOutputStream out)
-                throws IOException {
+        private void handleFileRequest(String fileHash, long offset, int length, DataOutputStream out) throws IOException {
             FileInfoDto fileInfo = sharedFiles.get(fileHash);
             if (fileInfo == null) {
                 out.writeUTF("ERROR File not found");

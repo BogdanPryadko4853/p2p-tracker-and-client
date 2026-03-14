@@ -3,7 +3,7 @@ package com.bogdan.client.infra;
 import com.bogdan.client.common.ClientConfigConstant;
 import com.bogdan.client.dto.FileInfoDto;
 import com.bogdan.client.util.FileUtils;
-import com.bogdan.client.util.HashCalculator;
+import com.bogdan.client.util.HashCalculatorUtils;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -43,7 +43,7 @@ public class FileManager {
                     FileInfoDto fileInfo = FileInfoDto.builder()
                             .name(file.getName())
                             .size(file.length())
-                            .hash(HashCalculator.calculateHash(file))
+                            .hash(HashCalculatorUtils.calculateHash(file))
                             .build();
                     files.add(fileInfo);
                     log.debug("Found shared file: {} ({} bytes)", file.getName(), file.length());

@@ -5,3 +5,8 @@ spring:
     web-application-type: none
 server:
   port:
+
+logging:
+  level:
+    com.bogdan.client.p2p: DEBUG
+    com.bogdan.client.controller: DEBUG

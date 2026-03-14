@@ -11,7 +11,7 @@ import java.security.NoSuchAlgorithmException;
 
 @Slf4j
 @UtilityClass
-public class HashCalculator {
+public class HashCalculatorUtils {
 
     public static String calculateHash(File file) throws IOException, NoSuchAlgorithmException {
         MessageDigest digest = MessageDigest.getInstance("SHA-1");

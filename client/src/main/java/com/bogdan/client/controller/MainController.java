@@ -60,7 +60,8 @@ public class MainController {
 
     public MainController(TrackerService trackerService,
                           P2PService p2pService,
-                          FileManager fileManager, ClientConfigConstant clientConfigConstant) {
+                          FileManager fileManager,
+                          ClientConfigConstant clientConfigConstant) {
         this.trackerService = trackerService;
         this.p2pService = p2pService;
         this.fileManager = fileManager;
@@ -131,15 +132,15 @@ public class MainController {
             Platform.runLater(() -> {
                 DownloadItem item = downloadItemMap.get(task.getId());
                 if (item != null) {
+                    item.setProgress(task.getProgress() + "%");
+                    item.setStatus(task.getStatus());
+
                     if ("Completed".equals(task.getStatus())) {
-                        item.setStatus("Completed");
                         Path path = Paths.get(task.getDownloadPath()).toAbsolutePath().normalize();
                         item.setDownloadPath(path.toString());
                         log.info("Download completed and saved to: {}", path);
                     } else if ("Failed".equals(task.getStatus())) {
                         item.setStatus("Failed");
-                    } else {
-                        item.setStatus("Downloading");
                     }
                     downloadsTable.refresh();
                     updateStats();
@@ -205,7 +206,7 @@ public class MainController {
 
     private void setupDownloadsTable() {
         downloadNameColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getName()));
-        downloadProgressColumn.setCellValueFactory(cellData -> new SimpleStringProperty(""));
+        downloadProgressColumn.setCellValueFactory(cellData -> cellData.getValue().progressProperty());
         downloadStatusColumn.setCellValueFactory(cellData -> cellData.getValue().statusProperty());
 
         downloadsTable.setPlaceholder(new Label("No active downloads"));
@@ -273,21 +274,18 @@ public class MainController {
                 return;
             }
 
-            PeerResponse peer = peers.get(0);
             FileInfoDto dto = FileInfoDto.builder()
                     .hash(file.getHash())
                     .name(file.getName())
                     .size(file.getSizeInBytes())
                     .build();
 
-            String downloadId = dto.getHash() + "_" + System.currentTimeMillis();
-            p2pService.downloadFile(dto, peer, file.getName(), downloadId);
-
+            String downloadId = p2pService.downloadFile(dto, peers, file.getName());
             DownloadItem item = new DownloadItem(downloadId, file.getName());
             downloadItemMap.put(downloadId, item);
             downloads.add(item);
             statusLabel.setText("Download started: " + file.getName());
-            log.info("Started download of {} from {}:{}", file.getName(), peer.getIp(), peer.getPort());
+            log.info("Started download of {} from {} peers", file.getName(), peers.size());
 
         } catch (Exception e) {
             log.error("Failed to start download: {}", e.getMessage());
@@ -340,19 +338,15 @@ public class MainController {
                 return;
             }
 
-            // 1. Удаляем на трекере (специфичный endpoint)
             trackerService.removeFileFromPeer(fileToRemove.getHash());
 
-            // 2. Удаляем из локальной папки
             File fileToDelete = new File(clientConfigConstant.SHARED_DIR, fileName);
             if (fileToDelete.exists()) {
                 fileToDelete.delete();
             }
 
-            // 3. Удаляем из P2PService
             p2pService.removeSharedFile(fileToRemove.getHash());
 
-            // 4. Обновляем UI
             refreshSharedFiles();
 
             statusLabel.setText("File removed from shares: " + fileName);
@@ -439,6 +433,7 @@ public class MainController {
         private final String name;
         private final StringProperty status = new SimpleStringProperty("Starting");
         private final StringProperty downloadPath = new SimpleStringProperty("");
+        private final StringProperty progress = new SimpleStringProperty("0%");
 
         public DownloadItem(String id, String name) {
             this.id = id;
@@ -467,6 +462,18 @@ public class MainController {
 
         public void setDownloadPath(String path) {
             this.downloadPath.set(path);
+        }
+
+        public String getProgress() {
+            return progress.get();
+        }
+
+        public StringProperty progressProperty() {
+            return progress;
+        }
+
+        public void setProgress(String progress) {
+            this.progress.set(progress);
         }
     }
 }

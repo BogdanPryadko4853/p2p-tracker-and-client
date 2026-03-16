@@ -60,34 +60,10 @@ public class PeerServiceData {
     @Transactional
     public void updatePeerFiles(UUID peerId, List<FileInfo> newFiles) {
         Peer peer = findPeerById(peerId);
-
-        Set<String> oldHashes = peer.getFiles().stream()
-                .map(FileInfo::getHash)
-                .collect(Collectors.toSet());
-
         List<FileInfo> managedNewFiles = convertToManagedFiles(newFiles);
-
-        peer.getFiles().clear();
-        peer.getFiles().addAll(managedNewFiles);
-
-        peerRepository.saveAndFlush(peer);
-
-        Set<String> newHashes = managedNewFiles.stream()
-                .map(FileInfo::getHash)
-                .collect(Collectors.toSet());
-
-        oldHashes.stream()
-                .filter(hash -> !newHashes.contains(hash))
-                .forEach(hash -> {
-                    List<Peer> otherPeers = peerRepository.findPeersByFileHash(hash)
-                            .stream()
-                            .filter(p -> !p.getId().equals(peerId))
-                            .toList();
-                    if (otherPeers.isEmpty()) {
-                        fileInfoService.deleteFile(hash);
-                        log.info("Orphaned file {} deleted from DB", hash);
-                    }
-                });
+        peer.setFiles(managedNewFiles);
+        peerRepository.save(peer);
+        log.info("Updated files for peer {}: now {} files", peerId, managedNewFiles.size());
     }
 
     @Transactional

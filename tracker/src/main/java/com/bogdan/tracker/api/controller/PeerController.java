@@ -32,6 +32,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
@@ -158,18 +159,16 @@ public class PeerController {
                 .build();
     }
 
-    @Operation(summary = "Обновить список файлов пира")
-    @ApiResponse(responseCode = "200", description = "Список файлов обновлён")
     @PutMapping("/{peerId}/files")
     public void updateFilesOfPeer(
-            @Parameter(description = "ID пира", required = true)
             @PathVariable UUID peerId,
-            @Parameter(description = "Новый список файлов", required = true)
             @RequestBody List<FileInfoDto> files) {
-        files.forEach(fileInfoDto -> {
-            FileInfo fileInfo = FileInfoMapper.toFileInfo(fileInfoDto);
-            fileInfoService.updateFile(fileInfo);
-        });
+
+        List<FileInfo> fileInfos = files.stream()
+                .map(FileInfoMapper::toFileInfo)
+                .collect(Collectors.toList());
+
+        peerService.updatePeerFiles(peerId, fileInfos);
     }
 
     @Operation(summary = "Добавить файл пиру")

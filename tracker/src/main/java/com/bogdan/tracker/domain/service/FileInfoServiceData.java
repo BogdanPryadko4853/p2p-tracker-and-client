@@ -31,14 +31,6 @@ public class FileInfoServiceData {
         return saved;
     }
 
-
-
-    @Transactional
-    public FileInfo updateFile(FileInfo fileInfo) {
-        return fileInfoRepository.save(fileInfo);
-    }
-
-
     @Transactional
     public void deleteFile(String hash) {
         fileInfoRepository.findById(hash).ifPresentOrElse(
@@ -62,14 +54,6 @@ public class FileInfoServiceData {
         return fileInfoRepository.findAll();
     }
 
-    public boolean existsFile(String hash) {
-        return fileInfoRepository.existsById(hash);
-    }
-
-    public long countFiles() {
-        return fileInfoRepository.count();
-    }
-
     public List<FileInfo> searchFilesByName(String query) {
         log.debug("Searching files by name: {}", query);
         if (query == null || query.trim().isEmpty()) {
@@ -81,20 +65,5 @@ public class FileInfoServiceData {
     public List<FileInfo> findFilesByPeerId(UUID peerId) {
         log.debug("Fetching files for peer: {}", peerId);
         return fileInfoRepository.findByPeerId(peerId);
-    }
-
-    @Transactional
-    public void updateFileName(String hash, String newName) {
-        FileInfo fileInfo = fileInfoRepository.findById(hash)
-                .orElseThrow(() -> new FileInfoNotFoundException("File not found with hash: " + hash));
-
-        if (newName == null || newName.trim().isEmpty()) {
-            throw new IllegalArgumentException("New file name cannot be empty");
-        }
-
-        String oldName = fileInfo.getName();
-        fileInfo.setName(newName.trim());
-        fileInfoRepository.save(fileInfo);
-        log.info("File name updated for hash: {} from '{}' to '{}'", hash, oldName, newName);
     }
 }

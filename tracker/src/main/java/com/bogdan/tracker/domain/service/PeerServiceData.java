@@ -1,6 +1,5 @@
 package com.bogdan.tracker.domain.service;
 
-import com.bogdan.tracker.domain.exception.Peer.PeerAlreadyExistsException;
 import com.bogdan.tracker.domain.exception.Peer.PeerNotFoundException;
 import com.bogdan.tracker.domain.model.FileInfo;
 import com.bogdan.tracker.domain.model.Peer;
@@ -14,9 +13,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -67,28 +64,10 @@ public class PeerServiceData {
     }
 
     @Transactional
-    public void savePeer(Peer peer) {
-        peerRepository.findByIpAndPort(peer.getIp(), peer.getPort())
-                .ifPresent(existingPeer -> {
-                    throw new PeerAlreadyExistsException(
-                            String.format("Peer already exists with ip: %s and port: %d",
-                                    peer.getIp(), peer.getPort())
-                    );
-                });
-        prepareNewPeer(peer);
-        peerRepository.save(peer);
-    }
-
-    @Transactional
     public void deletePeer(UUID peerId) {
         Peer peer = findPeerById(peerId);
         peerRepository.delete(peer);
         log.info("Peer deleted with id: {}", peerId);
-    }
-
-    @Transactional
-    public void deletePeer(Peer peer) {
-        deletePeer(peer.getId());
     }
 
     public List<Peer> findAllPeers() {
@@ -109,10 +88,6 @@ public class PeerServiceData {
         return currentPeer;
     }
 
-    public Optional<Peer> findPeerByIpAndPortOpt(String ip, int port) {
-        return peerRepository.findByIpAndPort(ip, port);
-    }
-
     public List<Peer> findActivePeers(LocalDateTime since) {
         log.debug("Fetching active peers since: {}", since);
         return peerRepository.findByLastSeenAfter(since);
@@ -121,14 +96,6 @@ public class PeerServiceData {
     public List<Peer> findPeersByFileHash(String fileHash) {
         log.debug("Fetching peers for file hash: {}", fileHash);
         return peerRepository.findPeersByFileHash(fileHash);
-    }
-
-    @Transactional
-    public void cleanupInactivePeers(LocalDateTime threshold) {
-        int deletedCount = peerRepository.deleteByLastSeenBefore(threshold);
-        if (deletedCount > 0) {
-            log.info("Cleaned up {} inactive peers (last seen before {})", deletedCount, threshold);
-        }
     }
 
     private void prepareNewPeer(Peer peer) {

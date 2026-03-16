@@ -406,14 +406,6 @@ public class MainController {
             this.peersCount = peersCount;
         }
 
-        public String getFormattedSize() {
-            return formatSize(size);
-        }
-
-        public String getShortHash() {
-            return hash.length() > 8 ? hash.substring(0, 8) + "..." : hash;
-        }
-
         public long getSizeInBytes() {
             return size;
         }
@@ -462,10 +454,6 @@ public class MainController {
 
         public void setDownloadPath(String path) {
             this.downloadPath.set(path);
-        }
-
-        public String getProgress() {
-            return progress.get();
         }
 
         public StringProperty progressProperty() {
